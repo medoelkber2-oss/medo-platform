@@ -3,26 +3,30 @@ const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
 
-// إعدادات المحرك (EJS) وتحديد مكان الفولدر بشكل صحيح
+// إعدادات المحرك (EJS)
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// إعدادات التعامل مع البيانات القادمة من الفورم
+// إعدادات البيانات والملفات العامة
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// رابط الداتا بيز بالباسورد بتاعك
+// رابط الداتا بيز بالباسورد بتاعك (تأكد إنه medoelkber2025)
 const dbURI = "mongodb+srv://medoelkber2:medoelkber2025@cluster0.o8905.mongodb.net/medo-school?retryWrites=true&w=majority";
 
 mongoose.connect(dbURI)
-  .then(() => console.log('Connected to MongoDB Successfully!'))
-  .catch((err) => console.log('MongoDB Connection Error:', err));
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch((err) => console.log('❌ MongoDB Error:', err));
 
-// المسارات (Routes) - تم التعديل لمنع الـ ReferenceError
+// المسارات (Routes) - ركز هنا عشان ده حل الـ ReferenceError
 app.get('/', (req, res) => {
-    // ضفنا قيم افتراضية عشان الـ EJS ميعطلش
-    res.render('index', { user: null, title: "Home" }); 
+    // بنبعت قيم افتراضية عشان الـ EJS ميعملش Error لو السطر 6 فيه user أو title
+    res.render('index', { 
+        user: null, 
+        title: "الصفحة الرئيسية",
+        error: null 
+    }); 
 });
 
 app.get('/login', (req, res) => {
@@ -33,15 +37,10 @@ app.get('/signup', (req, res) => {
     res.render('signup', { error: null });
 });
 
-// مسار افتراضي لأي صفحة تانية (Page Not Found)
-app.use((req, res) => {
-    res.status(404).send('Page not found');
-});
-
-// تشغيل السيرفر بشكل مرن
+// تشغيل السيرفر
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`🚀 Server ready on port ${PORT}`);
 });
 
 module.exports = app;

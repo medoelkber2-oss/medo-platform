@@ -56,7 +56,7 @@ const courses = [
     },
     { 
         id: "c3", 
-        title: "كورس ميدو الجديد 🚀", 
+        title: "استطلاع الراي", 
         vid: "ieaQmXn-uA4", 
         thumb: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=500" 
     }
@@ -144,3 +144,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
 
 module.exports = app;
+

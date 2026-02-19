@@ -1,7 +1,6 @@
 {
   "name": "medo-platform",
   "version": "1.0.0",
-  "description": "Academy Platform",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"

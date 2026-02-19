@@ -27,7 +27,6 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// بيانات الكورسات بالفيديوهات الصحيحة
 const courses = [
     { id: "c1", title: "كورس البرمجة الشامل", vid: "dQw4w9WgXcQ", thumb: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500" },
     { id: "c2", title: "احتراف التسويق", vid: "9Wp3-6n-8f0", thumb: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500" },
@@ -35,7 +34,6 @@ const courses = [
 ];
 
 app.get('/', (req, res) => res.redirect('/login'));
-
 app.get('/login', (req, res) => res.render('login', { error: req.query.error || null }));
 
 app.post('/login', async (req, res) => {
@@ -43,6 +41,18 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({ email, password });
     if (user) {
         req.session.userId = user._id;
+        const currentDevice = req.headers['user-agent'];
+
+        // حماية الجهاز: لو الطالب مسجل بجهاز ودخل من جهاز تاني
+        if (user.device_info && user.device_info !== currentDevice && user.role !== 'admin') {
+            return res.redirect('/login?error=عفواً، هذا الحساب مسجل على جهاز آخر. تواصل مع الدعم.');
+        }
+
+        // لو أول مرة يدخل، نسجل جهازه
+        if (!user.device_info) {
+            await User.findByIdAndUpdate(user._id, { device_info: currentDevice });
+        }
+
         if (email === "medo_elkber@gmail.com") {
             await User.findByIdAndUpdate(user._id, { role: 'admin' });
             return res.redirect('/admin/dashboard');
@@ -58,7 +68,6 @@ app.get('/home', async (req, res) => {
     res.render('index', { user, courses });
 });
 
-// مسار مشاهدة الكورس المعدل
 app.get('/course/:id', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const course = courses.find(c => c.id === req.params.id);
@@ -74,10 +83,15 @@ app.get('/admin/dashboard', async (req, res) => {
     res.render('admin', { students, user });
 });
 
-app.get('/forgot-password', (req, res) => {
-    const adminPhone = "201012345678"; // ضع رقمك الحقيقي هنا
-    const msg = encodeURIComponent("أهلاً مستر ميدو، نسيت باسورد حسابي.");
-    res.redirect(`https://wa.me/${adminPhone}?text=${msg}`);
+// ميزة التصفير (Reset Device) للأدمن فقط
+app.get('/admin/reset/:id', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/login');
+    const admin = await User.findById(req.session.userId);
+    if (admin && admin.role === 'admin') {
+        await User.findByIdAndUpdate(req.params.id, { device_info: "" });
+        return res.redirect('/admin/dashboard?success=تم تصفير الجهاز');
+    }
+    res.redirect('/home');
 });
 
 app.get('/logout', (req, res) => {
@@ -87,5 +101,4 @@ app.get('/logout', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT);
-
 module.exports = app;

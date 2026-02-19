@@ -2,40 +2,164 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم 🛡️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | ميدو 🛡️</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { 
+            background-color: #f0f2f5; 
+            font-family: 'Cairo', sans-serif; 
+            color: #2b2d42;
+        }
+
+        /* Navbar الخاص بالأدمن */
+        .admin-nav { 
+            background: #1e293b; /* لون كحلي بروفيشينال */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            border-right: 5px solid #4361ee;
+            padding-right: 15px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .table thead {
+            background-color: #4361ee;
+            color: white;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
-<body class="bg-light p-4">
-    <div class="container bg-white p-4 shadow rounded">
-        <h2 class="mb-4">إدارة الأكاديمية 🛠️</h2>
-        <div class="row">
-            <div class="col-md-4 border-end">
-                <h5>توليد أكواد</h5>
+<body>
+
+<nav class="navbar navbar-dark admin-nav mb-4 p-3">
+    <div class="container d-flex justify-content-between align-items-center">
+        <span class="navbar-brand fw-bold text-info">
+            <i class="fa-solid fa-user-shield me-2"></i> لوحة تحكم الأدمن
+        </span>
+        <div class="d-flex gap-2">
+            <a href="/home" class="btn btn-sm btn-outline-info">
+                <i class="fa-solid fa-house"></i> الرئيسية
+            </a>
+            <a href="/logout" class="btn btn-sm btn-danger">
+                <i class="fa-solid fa-right-from-bracket"></i> تسجيل خروج
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card p-4 h-100">
+                <h5 class="section-title mb-4">توليد أكواد تفعيل</h5>
                 <form action="/admin/generate" method="POST">
-                    <select name="courseId" class="form-select mb-2">
-                        <option value="c1">البرمجة</option>
-                        <option value="c2">التسويق</option>
-                    </select>
-                    <input type="number" name="count" class="form-control mb-2" placeholder="عدد الأكواد">
-                    <button class="btn btn-success w-100">توليد</button>
+                    <div class="mb-3">
+                        <label class="form-label">اختر الكورس</label>
+                        <select name="courseId" class="form-select">
+                            <option value="c1">كورس البرمجة الشامل</option>
+                            <option value="c2">احتراف التسويق</option>
+                            <option value="c3">كورس ميدو الجديد 🚀</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">عدد الأكواد المطلوبة</label>
+                        <input type="number" name="count" class="form-control" placeholder="مثلاً: 10" required>
+                    </div>
+                    <button type="submit" class="btn btn-generate w-100 py-2">
+                        <i class="fa-solid fa-plus-circle me-1"></i> توليد الآن
+                    </button>
                 </form>
             </div>
-            <div class="col-md-8">
-                <h5>قائمة الطلاب</h5>
-                <table class="table table-hover">
-                    <thead><tr><th>الطالب</th><th>الحالة</th><th>تحكم</th></tr></thead>
-                    <tbody>
-                        <% students.forEach(s => { %>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card p-4 h-100">
+                <h5 class="section-title mb-4">إدارة الطلاب المشتركين</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
                             <tr>
-                                <td><%= s.username %></td>
-                                <td><%= s.device_info ? '🔒 مقيد' : '🔓 متاح' %></td>
-                                <td><a href="/admin/reset/<%= s._id %>" class="btn btn-sm btn-warning">تصفير الجهاز</a></td>
+                                <th>اسم الطالب</th>
+                                <th>حالة الجهاز</th>
+                                <th>التحكم</th>
                             </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <% students.forEach(s => { %>
+                                <tr>
+                                    <td class="fw-bold"><%= s.username %></td>
+                                    <td>
+                                        <% if(s.device_info) { %>
+                                            <span class="status-badge bg-danger-subtle text-danger">🔒 مقيد بجهاز</span>
+                                        <% } else { %>
+                                            <span class="status-badge bg-success-subtle text-success">🔓 متاح</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <button onclick="confirmReset('<%= s._id %>')" class="btn btn-sm btn-warning fw-bold text-dark">
+                                            <i class="fa-solid fa-rotate-left me-1"></i> تصفير الجهاز
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+    // تأكيد تصفير الجهاز
+    function confirmReset(studentId) {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "سيتم السماح للطالب بفتح الحساب من جهاز جديد",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#4361ee',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'نعم، قم بالتصفير',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/admin/reset/${studentId}`;
+            }
+        })
+    }
+
+    // عرض رسائل النجاح
+    const params = new URLSearchParams(window.location.search);
+    if(params.has('success')) {
+        Swal.fire({ icon: 'success', title: 'تمت العملية', text: params.get('success'), timer: 2000, showConfirmButton: false });
+    }
+</script>
+
 </body>
 </html>

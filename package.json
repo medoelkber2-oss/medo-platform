@@ -1,3 +1,18 @@
-"scripts": {
-  "start": "node app.js"
+{
+  "name": "medo-platform",
+  "version": "1.0.0",
+  "description": "Academy Platform",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "mongoose": "^7.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
 }

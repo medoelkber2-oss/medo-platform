@@ -43,12 +43,10 @@ app.post('/login', async (req, res) => {
         req.session.userId = user._id;
         const currentDevice = req.headers['user-agent'];
 
-        // حماية الجهاز: لو الطالب مسجل بجهاز ودخل من جهاز تاني
         if (user.device_info && user.device_info !== currentDevice && user.role !== 'admin') {
-            return res.redirect('/login?error=عفواً، هذا الحساب مسجل على جهاز آخر. تواصل مع الدعم.');
+            return res.redirect('/login?error=عفواً، حسابك مسجل بجهاز آخر');
         }
 
-        // لو أول مرة يدخل، نسجل جهازه
         if (!user.device_info) {
             await User.findByIdAndUpdate(user._id, { device_info: currentDevice });
         }
@@ -59,7 +57,7 @@ app.post('/login', async (req, res) => {
         }
         return res.redirect('/home');
     }
-    res.redirect('/login?error=خطأ في بيانات الدخول');
+    res.redirect('/login?error=بيانات غير صحيحة');
 });
 
 app.get('/home', async (req, res) => {
@@ -68,36 +66,41 @@ app.get('/home', async (req, res) => {
     res.render('index', { user, courses });
 });
 
-app.get('/course/:id', async (req, res) => {
-    if (!req.session.userId) return res.redirect('/login');
-    const course = courses.find(c => c.id === req.params.id);
-    if (!course) return res.redirect('/home');
-    res.render('video', { course });
-});
-
 app.get('/admin/dashboard', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const user = await User.findById(req.session.userId);
     if (!user || user.role !== 'admin') return res.redirect('/home');
     const students = await User.find({ role: 'student' });
-    res.render('admin', { students, user });
+    res.render('admin', { students, user, success: req.query.success, error: req.query.error });
 });
 
-// ميزة التصفير (Reset Device) للأدمن فقط
-app.get('/admin/reset/:id', async (req, res) => {
+// إضافة طالب جديد
+app.post('/admin/add-student', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const admin = await User.findById(req.session.userId);
     if (admin && admin.role === 'admin') {
-        await User.findByIdAndUpdate(req.params.id, { device_info: "" });
-        return res.redirect('/admin/dashboard?success=تم تصفير الجهاز');
+        const { username, email, password } = req.body;
+        try {
+            await User.create({ username, email, password });
+            res.redirect('/admin/dashboard?success=تم إضافة الطالب');
+        } catch (e) {
+            res.redirect('/admin/dashboard?error=الإيميل مسجل مسبقاً');
+        }
     }
-    res.redirect('/home');
 });
 
-app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login');
+app.get('/admin/reset/:id', async (req, res) => {
+    await User.findByIdAndUpdate(req.params.id, { device_info: "" });
+    res.redirect('/admin/dashboard?success=تم تصفير الجهاز');
 });
+
+app.get('/course/:id', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/login');
+    const course = courses.find(c => c.id === req.params.id);
+    res.render('video', { course });
+});
+
+app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT);

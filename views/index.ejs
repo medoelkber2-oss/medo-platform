@@ -3,138 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أكاديمية ميدو 🎓</title>
+    <title>منصتي | الرئيسية 🎓</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3a0ca3;
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-color: #2b2d42;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #1a1a2e;
-            --card-bg: #16213e;
-            --text-color: #e9ecef;
-            --primary-color: #4cc9f0;
-        }
-
-        body { 
-            background-color: var(--bg-color); 
-            font-family: 'Cairo', sans-serif; 
-            color: var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        /* Navbar */
-        .navbar { 
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        /* Theme Toggle Button */
-        #theme-toggle {
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: white;
-            transition: 0.3s;
-        }
-
-        /* Course Cards */
-        .course-card { 
-            border-radius: 20px; 
-            border: none; 
-            transition: all 0.4s ease;
-            background: var(--card-bg);
-            color: var(--text-color);
-            overflow: hidden;
-        }
-
-        .course-card:hover { 
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-        }
-
-        .btn-primary { 
-            background-color: var(--primary-color); 
-            border: none; 
-            border-radius: 10px;
-            padding: 10px;
-            font-weight: bold;
-        }
-
-        /* Lessons List */
-        .list-group-item {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid rgba(0,0,0,0.05);
-            border-right: 4px solid transparent;
-            transition: 0.3s;
-        }
-
-        .list-group-item:hover {
-            border-right-color: var(--primary-color);
-            background-color: rgba(67, 97, 238, 0.1);
-            color: var(--primary-color);
-        }
-
-        .whatsapp-float { 
-            position: fixed; bottom: 20px; left: 20px; 
-            background: #25d366; color: white; width: 60px; height: 60px; 
-            border-radius: 50%; display: flex; align-items: center; 
-            justify-content: center; font-size: 30px; text-decoration: none;
-            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
-            z-index: 1000;
-        }
+        body { background: #f8f9fa; font-family: 'Cairo', sans-serif; }
+        .hero-section { background: linear-gradient(135deg, #1e293b, #4361ee); color: white; padding: 40px 0; border-radius: 0 0 30px 30px; margin-bottom: 40px; }
+        .course-card { border: none; border-radius: 20px; transition: all 0.3s; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .course-card:hover { transform: translateY(-10px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
+        .course-img { height: 180px; object-fit: cover; }
+        .btn-enter { background: #4361ee; border: none; border-radius: 10px; font-weight: bold; }
+        .logout-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid white; border-radius: 10px; padding: 5px 15px; text-decoration: none; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark mb-4 p-3">
+<div class="hero-section shadow">
     <div class="container d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fw-bold">مرحباً <%= user.username %> 🎓</span>
-        <div class="d-flex align-items-center gap-3">
-            <i id="theme-toggle" class="fa-solid fa-moon"></i>
-            <a href="/logout" class="btn btn-outline-light btn-sm">خروج</a>
+        <div>
+            <h2 class="fw-bold m-0">أهلاً، <%= user.username %> 👋</h2>
+            <p class="m-0 opacity-75">جاهز لتكملة رحلة التعلم اليوم؟</p>
         </div>
+        <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> خروج</a>
     </div>
-</nav>
+</div>
 
 <div class="container">
-    <div class="row g-4 mb-5">
+    <h4 class="fw-bold mb-4"><i class="fas fa-graduation-cap text-primary"></i> كورساتك المتاحة</h4>
+    <div class="row g-4">
         <% courses.forEach(course => { %>
-            <div class="col-md-6">
-                <div class="card course-card shadow-sm h-100">
-                    <img src="<%= course.thumb %>" class="card-img-top" style="height: 200px; object-fit: cover;">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="fw-bold mb-3"><%= course.title %></h5>
-                        
-                        <% if (user.enrolled_courses.includes(course.id)) { %>
-                            <% if (deviceMatch) { %>
-                                <div class="list-group list-group-flush mt-auto">
-                                    <% course.lessons.forEach(l => { %>
-                                        <button class="list-group-item list-group-item-action" onclick="showVideo('<%= l.vid %>', '<%= l.title %>')">
-                                            <i class="fa-solid fa-circle-play me-2"></i> <%= l.title %>
-                                        </button>
-                                    <% }) %>
-                                </div>
-                            <% } else { %>
-                                <div class="alert alert-danger mt-auto">⚠️ عذراً! الحساب مفعل على جهاز آخر.</div>
-                            <% } %>
-                        <% } else { %>
-                            <form action="/activate/<%= course.id %>" method="POST" class="mt-auto">
-                                <div class="input-group">
-                                    <input type="text" name="activationCode" class="form-control" placeholder="كود التفعيل">
-                                    <button class="btn btn-primary">تفعيل</button>
-                                </div>
-                            </form>
-                        <% } %>
+            <div class="col-md-4">
+                <div class="card course-card h-100">
+                    <img src="<%= course.thumb %>" class="course-img" alt="course">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold"><%= course.title %></h5>
+                        <p class="text-muted small"><i class="far fa-play-circle text-primary"></i> <%= course.lessons %> درس تعليمي</p>
+                        <a href="#" class="btn btn-enter btn-primary w-100">ابدأ المشاهدة الآن</a>
                     </div>
                 </div>
             </div>
@@ -142,54 +47,5 @@
     </div>
 </div>
 
-<a href="https://wa.me/20123456789" class="whatsapp-float" target="_blank">
-    <i class="fa-brands fa-whatsapp"></i>
-</a>
-
-<script>
-    // --- 1. التحكم في الوضع الليلي ---
-    const themeToggle = document.getElementById('theme-toggle');
-    const body = document.body;
-
-    // التحقق من الاختيار السابق
-    if (localStorage.getItem('theme') === 'dark') {
-        body.setAttribute('data-theme', 'dark');
-        themeToggle.classList.replace('fa-moon', 'fa-sun');
-    }
-
-    themeToggle.addEventListener('click', () => {
-        if (body.getAttribute('data-theme') === 'dark') {
-            body.removeAttribute('data-theme');
-            themeToggle.classList.replace('fa-sun', 'fa-moon');
-            localStorage.setItem('theme', 'light');
-        } else {
-            body.setAttribute('data-theme', 'dark');
-            themeToggle.classList.replace('fa-moon', 'fa-sun');
-            localStorage.setItem('theme', 'dark');
-        }
-    });
-
-    // --- 2. معالجة الرسائل التنبيهية ---
-    const params = new URLSearchParams(window.location.search);
-    if(params.has('error')) {
-        Swal.fire({ icon: 'error', title: 'عذراً', text: params.get('error'), confirmButtonColor: '#4361ee' });
-    }
-    if(params.has('success')) {
-        Swal.fire({ icon: 'success', title: 'تم بنجاح', text: params.get('success'), timer: 2500, showConfirmButton: false });
-    }
-    
-    // --- 3. تشغيل الفيديو ---
-    function showVideo(id, title) {
-        Swal.fire({
-            title: title,
-            html: `<div class="ratio ratio-16x9"><iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe></div>`,
-            showCloseButton: true,
-            showConfirmButton: false,
-            width: '900px'
-        });
-    }
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

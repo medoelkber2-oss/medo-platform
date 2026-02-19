@@ -2,71 +2,46 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصتي التعليمية 🎓</title>
+    <title>أكاديمية ميدو 🎓</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --main-color: #6366f1; --bg-color: #f8fafc; }
-        body { background: var(--bg-color); font-family: 'Cairo', sans-serif; }
-        .navbar { background: white; border-bottom: 1px solid #e2e8f0; }
-        .course-card { border: none; border-radius: 20px; transition: 0.3s; overflow: hidden; }
-        .course-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .whatsapp-btn { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; text-decoration: none; }
-        .lesson-list { max-height: 200px; overflow-y: auto; background: #f1f5f9; border-radius: 10px; padding: 10px; }
-        .lesson-item { padding: 8px; border-bottom: 1px solid #ddd; cursor: pointer; text-decoration: none; color: #333; display: block; }
-        .lesson-item:hover { background: #e2e8f0; }
+        body { background: #f4f7f6; font-family: 'Cairo', sans-serif; }
+        .course-card { border-radius: 15px; overflow: hidden; border: none; transition: 0.3s; }
+        .whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; text-decoration: none; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg p-3">
+<nav class="navbar navbar-dark bg-dark mb-4 p-3">
     <div class="container d-flex justify-content-between">
-        <a class="navbar-brand fw-bold text-primary" href="#">أكاديمية ميدو 🎓</a>
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="fa fa-user-circle me-1"></i> <%= user.username %>
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#"><i class="fa fa-id-card me-2"></i> بروفايلي</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="/logout">خروج</a></li>
-            </ul>
-        </div>
+        <span class="navbar-brand">مرحباً <%= user.username %> 🎓</span>
+        <a href="/logout" class="btn btn-outline-danger">خروج</a>
     </div>
 </nav>
 
-<div class="container mt-5">
+<div class="container">
     <div class="row g-4">
         <% courses.forEach(course => { %>
             <div class="col-md-6">
-                <div class="card course-card shadow-sm h-100">
+                <div class="card course-card shadow-sm">
                     <img src="<%= course.thumb %>" class="card-img-top" style="height: 200px; object-fit: cover;">
                     <div class="card-body">
-                        <h5 class="fw-bold"><%= course.title %></h5>
-                        
+                        <h5><%= course.title %></h5>
                         <% if (user.enrolled_courses.includes(course.id)) { %>
                             <% if (deviceMatch) { %>
-                                <div class="lesson-list mt-3">
-                                    <h6 class="small fw-bold text-muted">قائمة الدروس:</h6>
-                                    <% course.lessons.forEach((lesson, index) => { %>
-                                        <a href="#" class="lesson-item" onclick="playVideo('<%= lesson.vid %>')">
-                                            <i class="fa fa-play-circle me-2 text-primary"></i> <%= lesson.title %>
-                                        </a>
+                                <div class="list-group mt-2">
+                                    <% course.lessons.forEach(l => { %>
+                                        <button class="list-group-item list-group-item-action" onclick="showVideo('<%= l.vid %>')">▶️ <%= l.title %></button>
                                     <% }) %>
                                 </div>
-                                <div id="player-<%= course.id %>" class="mt-3" style="display:none;">
-                                    <div class="ratio ratio-16x9">
-                                        <iframe id="iframe-<%= course.id %>" src="" allowfullscreen></iframe>
-                                    </div>
-                                </div>
                             <% } else { %>
-                                <div class="alert alert-danger mt-3">⚠️ الكورس مقفل على جهاز آخر. تواصل مع الإدارة.</div>
+                                <div class="alert alert-danger mt-2">⚠️ هذا الكورس مقفل على جهازك الأساسي فقط.</div>
                             <% } %>
                         <% } else { %>
-                            <form action="/activate/<%= course.id %>" method="POST" class="mt-3">
-                                <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل">
-                                <button class="btn btn-primary w-100">تفعيل الكورس</button>
+                            <form action="/activate/<%= course.id %>" method="POST" class="mt-2">
+                                <input type="text" name="activationCode" class="form-control mb-2" placeholder="ادخل كود التفعيل">
+                                <button class="btn btn-primary w-100">تفعيل الآن</button>
                             </form>
                         <% } %>
                     </div>
@@ -76,16 +51,23 @@
     </div>
 </div>
 
-<a href="https://wa.me/201234567890" class="whatsapp-btn" target="_blank">
-    <i class="fab fa-whatsapp"></i>
-</a>
+<a href="https://wa.me/20123456789" class="whatsapp-float" target="_blank">📞</a>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    function playVideo(vid) {
-        // كود بسيط لتشغيل الفيديو في نفس الصفحة
-        alert("سيتم تشغيل الفيديو: " + vid);
-        // يمكنك تطويره ليفتح Modal أو يغير الـ src بتاع الـ iframe
+    // كود معالجة التنبيهات
+    const params = new URLSearchParams(window.location.search);
+    if(params.has('error')) {
+        Swal.fire({ icon: 'error', title: 'عذراً', text: params.get('error'), confirmButtonText: 'تمام' });
+    }
+    if(params.has('success')) {
+        Swal.fire({ icon: 'success', title: 'تم بنجاح', text: params.get('success'), timer: 2000 });
+    }
+    
+    function showVideo(id) {
+        Swal.fire({
+            html: `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`,
+            showCloseButton: true, showConfirmButton: false, width: 800
+        });
     }
 </script>
 </body>

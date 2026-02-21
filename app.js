@@ -25,21 +25,18 @@ const Code = mongoose.model('Code', new mongoose.Schema({
     used: { type: Boolean, default: false } 
 }));
 
-// تعديل موديل الكورس لدعم المحاضرات
 const Course = mongoose.model('Course', new mongoose.Schema({ 
     title: String, 
     thumb: String,
-    lectures: [{
-        title: String,
-        vid: String
-    }] 
+    lectures: [{ title: String, vid: String }] 
 }));
 
 app.use(session({ secret: 'medo-platform-2026', resave: false, saveUninitialized: false }));
 
-// ================= المسارات الأساسية =================
+// ================= المسارات الأساسية (User Routes) =================
 
 app.get('/', (req, res) => res.redirect('/login'));
+
 app.get('/login', (req, res) => res.render('login', { error: '', success: '' }));
 
 app.post('/login', async (req, res) => {
@@ -57,19 +54,16 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// --- مسارات إنشاء الحساب ---
 app.get('/signup', (req, res) => res.render('signup', { error: '', success: '' }));
 
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
-    
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-        return res.render('signup', { error: '❌ البريد الإلكتروني مسجل مسبقاً', success: '' });
-    }
-    
-    await User.create({ username, email, password });
-    res.render('login', { error: '', success: '✅ تم إنشاء الحساب بنجاح، يمكنك تسجيل الدخول الآن' });
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.render('signup', { error: 'الإيميل مسجل مسبقاً', success: '' });
+        await User.create({ username, email, password });
+        res.render('login', { error: '', success: 'تم إنشاء الحساب بنجاح، سجل دخولك الآن' });
+    } catch (e) { res.render('signup', { error: 'حدث خطأ في التسجيل', success: '' }); }
 });
 
 app.get('/home', async (req, res) => {
@@ -87,49 +81,36 @@ app.post('/activate/:courseId', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const { activationCode } = req.body;
     const courseId = req.params.courseId;
-
     const codeDoc = await Code.findOne({ code: activationCode.trim(), used: false });
     if (codeDoc) {
         const user = await User.findById(req.session.userId);
         let enrolled = JSON.parse(user.courses || '{}');
         enrolled[courseId] = { activated: true };
         await User.findByIdAndUpdate(user._id, { courses: JSON.stringify(enrolled) });
-        
         codeDoc.used = true;
         await codeDoc.save();
         res.redirect('/home');
     } else {
-        const user = await User.findById(req.session.userId);
-        const dbCourses = await Course.find({});
-        res.render('index', { 
-            courses: dbCourses, enrolledList: JSON.parse(user.courses || '{}'), 
-            username: user.username, error: '❌ الكود غير صحيح أو مستخدم مسبقاً', success: '' 
-        });
+        res.redirect('/home?error=invalid_code');
     }
 });
 
-// تعديل مسار الفيديو لجلب رقم المحاضرة
 app.get('/video/:id', async (req, res) => {
     if (!req.session.userId && !req.session.isAdmin) return res.redirect('/login');
     const course = await Course.findById(req.params.id);
-    if (!course) return res.send("الكورس غير موجود");
-    
     const lecIndex = parseInt(req.query.lec) || 0; 
     res.render('video', { course, lecIndex });
 });
 
-// ================= لوحة التحكم (Admin) =================
+app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
+
+// ================= لوحة التحكم (Admin Routes) =================
 
 app.get('/admin', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
-    const studentsRaw = await User.find({});
+    const students = await User.find({});
     const codes = await Code.find({});
     const dbCourses = await Course.find({});
-
-    const students = studentsRaw.map(s => {
-        const enrolled = JSON.parse(s.courses || '{}');
-        return { ...s._doc, activeCount: Object.keys(enrolled).length };
-    });
     res.render('admin', { students, codes, courses: dbCourses });
 });
 
@@ -140,25 +121,29 @@ app.post('/admin/add-course', async (req, res) => {
     res.redirect('/admin');
 });
 
-// مسار جديد لإضافة محاضرة للكورس
 app.post('/admin/add-lecture', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { courseId, title, vid } = req.body;
-    await Course.findByIdAndUpdate(courseId, { 
-        $push: { lectures: { title, vid } } 
-    });
+    await Course.findByIdAndUpdate(courseId, { $push: { lectures: { title, vid } } });
+    res.redirect('/admin');
+});
+
+app.get('/admin/course-data/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).json({ error: 'Unauthorized' });
+    const course = await Course.findById(req.params.id);
+    res.json(course);
+});
+
+app.post('/admin/edit-course/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    const { title, thumb } = req.body;
+    await Course.findByIdAndUpdate(req.params.id, { title, thumb });
     res.redirect('/admin');
 });
 
 app.get('/admin/delete-course/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     await Course.findByIdAndDelete(req.params.id);
-    res.redirect('/admin');
-});
-
-app.get('/admin/reset-student/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    await User.findByIdAndUpdate(req.params.id, { courses: '{}' });
     res.redirect('/admin');
 });
 
@@ -175,8 +160,6 @@ app.get('/admin/delete-all-codes', async (req, res) => {
     await Code.deleteMany({});
     res.redirect('/admin');
 });
-
-app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

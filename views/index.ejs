@@ -51,33 +51,47 @@
                         %>
                         
                         <% if (isEnrolled && isSameDevice && remaining > 0) { %>
-                            <!-- مفعل + نفس الجهاز + فيه مشاهدات -->
+                            <!-- مفعل -->
                             <div class="video-container shadow-sm">
                                 <iframe src="https://www.youtube.com/embed/<%= course.vid %>" frameborder="0" allowfullscreen></iframe>
                             </div>
-                            <p class="text-info mt-2 text-center fw-bold">
-                                📺 بقي <%= remaining %> مشاهدات من <%= courseData.max %>
-                            </p>
+                            <p class="text-info mt-2 text-center fw-bold">📺 بقي <%= remaining %> مشاهدات</p>
                             
                         <% } else if (isEnrolled && isSameDevice && remaining <= 0) { %>
-                            <!-- نفس الجهاز لكن خلصت المشاهدات -->
-                            <div class="alert alert-warning text-center">
-                                ⚠️ انتهت المشاهدات! يرجى تفعيل بكود جديد
-                            </div>
+                            <!-- خلصت مشاهدات -->
+                            <div class="alert alert-warning text-center">⚠️ انتهت المشاهدات!</div>
                             <form action="/activate/<%= course.id %>" method="POST">
-                                <div class="input-group mb-2">
-                                    <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 rounded-pill">تفعيل الكورس</button>
+                                <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
+                                <button type="submit" class="btn btn-primary w-100">تفعيل</button>
                             </form>
                             
                         <% } else if (isEnrolled && !isSameDevice) { %>
-                            <!-- مرتبط بجهاز تاني -->
-                            <div class="alert alert-danger text-center">
-                                🔒 هذا الكورس مرتبط بجهاز آخر!<br>يرجى التفعيل من جهازك
-                            </div>
+                            <!-- جهاز تاني -->
+                            <div class="alert alert-danger text-center">🔒 مرتبط بجهاز آخر!</div>
                             <form action="/activate/<%= course.id %>" method="POST">
-                                <div class="input-group mb-2">
-                                    <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100
+                                <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
+                                <button type="submit" class="btn btn-primary w-100">تفعيل على جهازي</button>
+                            </form>
+                            
+                        <% } else { %>
+                            <!-- غير مفعل -->
+                            <img src="<%= course.thumb %>" class="img-fluid rounded mb-3" style="height: 180px; width: 100%; object-fit: cover;">
+                            <form action="/activate/<%= course.id %>" method="POST">
+                                <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
+                                <button type="submit" class="btn btn-primary w-100">تفعيل الكورس</button>
+                            </form>
+                        <% } %>
+                        
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+</div>
+
+<footer class="text-center mt-5 mb-4 text-muted small">
+    &copy; 2026 مستر ميدو
+</footer>
+
+</body>
+</html>

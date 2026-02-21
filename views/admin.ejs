@@ -18,7 +18,6 @@
             <a href="/logout" class="btn btn-danger btn-sm">تسجيل خروج</a>
         </div>
 
-        <!-- رسائل النجاح والخطأ -->
         <% if (success) { %>
         <div class="alert alert-success text-center"><%= success %></div>
         <% } %>
@@ -43,9 +42,9 @@
                 <div class="card p-3 mb-4 shadow-sm border-warning">
                     <h5 class="fw-bold">توليد كود تفعيل 🔑</h5>
                     <form action="/admin/add-code" method="POST" class="d-flex gap-2">
-                        <input type="text" name="newCode" class="form-control" placeholder="اكتب الكود الجديد هنا" required>
-                        <input type="text" name="courseId" class="form-control" placeholder="معرف الكورس (c1, c2)" required>
-                        <button type="submit" class="btn btn-warning">حفظ الكود</button>
+                        <input type="text" name="newCode" class="form-control" placeholder="اكتب الكود" required>
+                        <input type="text" name="courseId" class="form-control" placeholder="معرف الكورس" required>
+                        <button type="submit" class="btn btn-warning">حفظ</button>
                     </form>
                 </div>
             </div>
@@ -53,15 +52,14 @@
 
         <hr>
 
-        <h5 class="fw-bold mt-4">إدارة الطلاب والبيانات 👥</h5>
+        <h5 class="fw-bold mt-4">إدارة الطلاب 👥</h5>
         <div class="table-responsive">
             <table class="table table-hover align-middle mt-3">
                 <thead class="table-dark">
                     <tr>
                         <th>الاسم</th>
                         <th>الإيميل</th>
-                        <th>الكورسات المفعلة</th>
-                        <th>الجهاز</th>
+                        <th>الكورسات</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
@@ -71,14 +69,16 @@
                         <td><%= s.username %></td>
                         <td><%= s.email %></td>
                         <td>
-                            <span class="badge <%= s.enrolled_courses.length > 0 ? 'bg-success' : 'bg-secondary' %>">
-                                <%= s.enrolled_courses.length %> كورس
+                            <% 
+                            let enrolled = {};
+                            try { enrolled = JSON.parse(s.enrolled_courses || '{}'); } catch(e) {}
+                            %>
+                            <span class="badge <%= Object.keys(enrolled).length > 0 ? 'bg-success' : 'bg-secondary' %>">
+                                <%= Object.keys(enrolled).length %> كورس
                             </span>
                         </td>
-                        <td><%= s.device_info ? '✅ مربوط' : '⚠️ متاح' %></td>
                         <td>
-                            <a href="/admin/reset-student/<%= s._id %>" class="btn btn-outline-warning btn-sm">تصفير الجهاز</a>
-                            <a href="/admin/delete-student/<%= s._id %>" class="btn btn-outline-danger btn-sm" onclick="return confirm('هل أنت متأكد من الحذف؟')">حذف</a>
+                            <a href="/admin/delete-student/<%= s._id %>" class="btn btn-outline-danger btn-sm" onclick="return confirm('هل أنت متأكد؟')">حذف</a>
                         </td>
                     </tr>
                     <% }) %>
@@ -86,11 +86,11 @@
             </table>
         </div>
 
-        <h5 class="fw-bold mt-5">الأكواد المتوفرة في القاعدة 🔑</h5>
+        <h5 class="fw-bold mt-5">الأكواد 🔑</h5>
         <div class="d-flex flex-wrap gap-2">
             <% codes.forEach(c => { %>
                 <span class="badge <%= c.is_used ? 'bg-secondary text-decoration-line-through' : 'bg-info' %> p-2">
-                    <%= c.code %>
+                    <%= c.code %> (<%= c.course_id %>)
                 </span>
             <% }) %>
         </div>

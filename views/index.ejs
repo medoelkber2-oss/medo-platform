@@ -21,13 +21,21 @@
     <div class="container d-flex justify-content-between align-items-center">
         <h3 class="mb-0 fw-bold">أكاديمية مستر ميدو 🎓</h3>
         <div class="d-flex align-items-center">
-            <span class="me-3">أهلاً، <strong><%= user.username %></strong></span>
+            <span class="me-3">أهلاً، <strong><%= username %></strong></span>
             <a href="/logout" class="btn btn-sm btn-outline-danger">خروج</a>
         </div>
     </div>
 </nav>
 
 <div class="container">
+    <!-- رسائل النجاح والخطأ -->
+    <% if (success) { %>
+    <div class="alert alert-success text-center"><%= success %></div>
+    <% } %>
+    <% if (error) { %>
+    <div class="alert alert-danger text-center"><%= error %></div>
+    <% } %>
+
     <h3 class="fw-bold mb-4">📚 كورساتي المتاحة</h3>
     <div class="row g-4">
         <% if (courses.length > 0) { %>
@@ -37,7 +45,7 @@
                         <div class="card-body">
                             <h5 class="fw-bold mb-3"><%= course.title %></h5>
                             
-                            <% if (user.enrolled_courses.includes(course._id)) { %>
+                            <% if (enrolledList.includes(course.id)) { %>
                                 <% if (deviceMatch) { %>
                                     <div class="video-container shadow-sm">
                                         <iframe src="https://www.youtube.com/embed/<%= course.vid %>" frameborder="0" allowfullscreen></iframe>
@@ -48,7 +56,7 @@
                                 <% } %>
                             <% } else { %>
                                 <img src="<%= course.thumb %>" class="img-fluid rounded mb-3" style="height: 180px; width: 100%; object-fit: cover; opacity: 0.8;">
-                                <form action="/activate/<%= course._id %>" method="POST">
+                                <form action="/activate/<%= course.id %>" method="POST">
                                     <div class="input-group mb-2">
                                         <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
                                     </div>

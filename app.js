@@ -26,7 +26,6 @@ const UserSchema = new mongoose.Schema({
 
 const CodeSchema = new mongoose.Schema({
     code: String,
-    course_id: String,
     used: { type: Boolean, default: false }
 });
 
@@ -56,12 +55,8 @@ function parseCourses(str) {
 
 // ==================== ROUTES ====================
 
-// Home - redirect to login
-app.get('/', (req, res) => {
-    res.redirect('/login');
-});
+app.get('/', (req, res) => res.redirect('/login'));
 
-// Login Page
 app.get('/login', (req, res) => {
     res.render('login', { 
         error: req.query.error || null,
@@ -69,28 +64,19 @@ app.get('/login', (req, res) => {
     });
 });
 
-// Signup Page
 app.get('/signup', (req, res) => {
-    res.render('signup', { 
-        error: null, 
-        success: null 
-    });
+    res.render('signup', { error: null, success: null });
 });
 
-// Register
 app.post('/signup', async (req, res) => {
     try {
         await User.create(req.body);
         res.redirect('/login?success=تم+إنشاء+الحساب+بنجاح');
     } catch (e) {
-        res.render('signup', { 
-            error: "الإيميل مسجل مسبقاً!", 
-            success: null 
-        });
+        res.render('signup', { error: "الإيميل مسجل مسبقاً!", success: null });
     }
 });
 
-// Login
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -100,7 +86,6 @@ app.post('/login', async (req, res) => {
             req.session.userId = user._id.toString();
             req.session.email = user.email;
             
-            // Admin check
             if (email === 'admin@medo.com') {
                 req.session.isAdmin = true;
                 return res.redirect('/admin');
@@ -111,15 +96,12 @@ app.post('/login', async (req, res) => {
             res.redirect('/login?error=بيانات+الدخول+خاطئة');
         }
     } catch (e) {
-        res.redirect('/login?error=حدث+خطأ+ما');
+        res.redirect('/login?error=حدث+خطأ');
     }
 });
 
-// Home Page
 app.get('/home', async (req, res) => {
-    if (!req.session.userId) {
-        return res.redirect('/login');
-    }
+    if (!req.session.userId) return res.redirect('/login');
     
     try {
         const user = await User.findById(req.session.userId);
@@ -144,35 +126,32 @@ app.get('/home', async (req, res) => {
     }
 });
 
-// Activate Course
+// تفعيل كورس - كود واحد فقط!
 app.post('/activate/:courseId', async (req, res) => {
-    if (!req.session.userId) {
-        return res.redirect('/login');
-    }
+    if (!req.session.userId) return res.redirect('/login');
     
     try {
         const { activationCode } = req.body;
+        
+        // البحث عن الكود غير المستخدم
         const codeDoc = await Code.findOne({ 
-            code: activationCode, 
-            course_id: req.params.courseId, 
+            code: activationCode.trim(), 
             used: false 
         });
         
         const user = await User.findById(req.session.userId);
-        if (!user) {
-            return res.redirect('/login');
-        }
+        if (!user) return res.redirect('/login');
         
         let enrolled = parseCourses(user.courses);
         const courseData = enrolled[req.params.courseId];
         
-        // Check if linked to other device
+        // فحص الجهاز
         if (courseData && courseData.device && courseData.device !== req.sessionID) {
             return res.redirect('/home?error=هذا+الكورس+مرتبط+بجهاز+آخر');
         }
         
         if (codeDoc) {
-            // Activate
+            // تفعيل الكورس ب 3 مشاهدات
             enrolled[req.params.courseId] = { 
                 views: 0, 
                 max: 3, 
@@ -181,12 +160,13 @@ app.post('/activate/:courseId', async (req, res) => {
             
             await User.findByIdAndUpdate(user._id, { courses: JSON.stringify(enrolled) });
             
+            // وضع الكود كمستخدم (مش هيقدر يستخدمة تاني)
             codeDoc.used = true;
             await codeDoc.save();
             
             res.redirect('/home?success=تم+التفعيل+3+مشاهدات');
         } else {
-            res.redirect('/home?error=الكود+خاطئ+أو+مستخدم');
+            res.redirect('/home?error=الكود+خاطئ+أو+مستخدم+من+قبل');
         }
     } catch (e) {
         console.log(e);
@@ -197,9 +177,7 @@ app.post('/activate/:courseId', async (req, res) => {
 // ==================== ADMIN ====================
 
 app.get('/admin', async (req, res) => {
-    if (!req.session.isAdmin) {
-        return res.redirect('/login');
-    }
+    if (!req.session.isAdmin) return res.redirect('/login');
     
     const students = await User.find({});
     const codes = await Code.find({});
@@ -223,10 +201,11 @@ app.post('/admin/add-course', async (req, res) => {
     res.redirect('/admin?success=تم+إضافة+الكورس');
 });
 
+// إضافة كود واحد - يشغل أي كورس
 app.post('/admin/add-code', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
-    await Code.create({ code: req.body.newCode, course_id: req.body.courseId });
+    await Code.create({ code: req.body.newCode.trim() });
     res.redirect('/admin?success=تم+إضافة+الكود');
 });
 
@@ -241,19 +220,28 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-// Generate keys
+// توليد أكواد - كل كود يُستخدم مرة واحدة فقط
 app.get('/admin/generate-keys', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
-    for (let id of ["c1", "c2"]) {
-        for (let i = 0; i < 10; i++) {
-            let codeVal = "MEDO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-            await Code.create({ code: codeVal, course_id: id });
-        }
+    for (let i = 0; i < 20; i++) {
+        let codeVal = "MEDO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        await Code.create({ code: codeVal, used: false });
     }
-    res.redirect('/admin?success=تم+توليد+20+كود');
+    res.redirect('/admin?success=تم+توليد+20+كود+جديد');
 });
 
-// Start Server
+// صفحة إضافة أكواد كثيرة
+app.get('/admin/add-many-codes/:count', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    
+    const count = parseInt(req.params.count) || 10;
+    for (let i = 0; i < count; i++) {
+        let codeVal = "MEDO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        await Code.create({ code: codeVal, used: false });
+    }
+    res.redirect('/admin?success=تم+توليد+' + count + '+كود');
+});
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, '0.0.0.0', () => console.log("🚀 Server running on " + PORT));

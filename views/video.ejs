@@ -5,39 +5,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مشاهدة: <%= course.title %></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; min-height: 100vh; }
-        .video-container { 
-            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; 
-            border-radius: 20px; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
+        :root {
+            --bg-dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --primary-color: #6366f1;
         }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-        .back-btn { color: #6366f1; text-decoration: none; font-weight: bold; transition: 0.3s; }
-        .back-btn:hover { color: white; }
-        .course-info { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; margin-top: 20px; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-dark);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            padding-bottom: 50px;
+        }
+
+        .header-nav {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 40px;
+        }
+
+        .video-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--glass);
+            padding: 15px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* نسبة 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 15px;
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .course-details {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 25px;
+            background: var(--glass);
+            border-radius: 20px;
+            border-right: 5px solid var(--primary-color);
+        }
+
+        .back-btn {
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn:hover {
+            background: #4f46e5;
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        /* منع النسخ لحماية المحتوى بشكل بسيط */
+        .no-select {
+            user-select: none;
+        }
     </style>
 </head>
-<body>
-    <div class="container py-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-primary"><%= course.title %></h2>
-            <a href="/home" class="back-btn"><i class="fas fa-arrow-right me-2"></i> العودة للرئيسية</a>
+<body class="no-select">
+
+    <nav class="header-nav">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 fw-bold text-primary">🎓 منصة مستر ميدو</h4>
+            <a href="/home" class="back-btn shadow">
+                <i class="fas fa-arrow-right"></i> رجوع للرئيسية
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="mb-4 text-center">
+            <h1 class="fw-black text-white"><%= course.title %></h1>
+            <p class="text-secondary">مشاهدة ممتعة ومفيدة يا بطل 🚀</p>
         </div>
 
-        <div class="video-container">
-            <iframe 
-                src="https://www.youtube.com/embed/<%= course.vid %>?rel=0&modestbranding=1" 
-                allowfullscreen>
-            </iframe>
+        <div class="video-wrapper">
+            <div class="video-container">
+                <iframe 
+                    src="https://www.youtube.com/embed/<%= course.vid %>?rel=0&modestbranding=1&showinfo=0" 
+                    title="YouTube video player" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+                </iframe>
+            </div>
         </div>
 
-        <div class="course-info shadow-sm">
-            <h4><i class="fas fa-info-circle me-2"></i> تفاصيل المحتوى</h4>
-            <p class="text-secondary mb-0">أنت الآن تشاهد محتوى "<strong><%= course.title %></strong>". تأكد من جودة الإنترنت لديك للمشاهدة بدون تقطيع.</p>
+        <div class="course-details">
+            <h4 class="text-primary fw-bold mb-3">
+                <i class="fas fa-chalkboard-teacher me-2"></i> تعليمات المشاهدة:
+            </h4>
+            <ul class="text-secondary mb-0">
+                <li>تأكد من اختيار جودة عالية من إعدادات الفيديو (الترس ⚙️).</li>
+                <li>حضر كشكولك وقلمك وسجل أهم الملاحظات ورا المستر.</li>
+                <li>في حالة وجود تقطيع، يرجى التحقق من سرعة الإنترنت لديك.</li>
+            </ul>
         </div>
     </div>
+
+    <footer class="text-center mt-5 text-secondary">
+        <small>جميع الحقوق محفوظة لمنصة مستر ميدو &copy; 2026</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

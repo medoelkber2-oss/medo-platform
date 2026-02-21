@@ -166,6 +166,21 @@ app.post('/admin/add-course', async (req, res) => {
     });
 });
 
+// حذف كورس
+app.get('/admin/delete-course/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    
+    courses = courses.filter(c => c.id !== req.params.id);
+    
+    res.render('admin', {
+        students: await User.find({}),
+        codes: await Code.find({}),
+        courses: courses,
+        error: '',
+        success: '✅ تم حذف الكورس!'
+    });
+});
+
 app.post('/admin/add-code', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     

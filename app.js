@@ -166,7 +166,7 @@ app.post('/admin/add-course', async (req, res) => {
     });
 });
 
-// حذف كورس
+// ✅ حذف كورس
 app.get('/admin/delete-course/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     

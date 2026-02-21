@@ -17,13 +17,21 @@ mongoose.connect(mongoURI)
     .then(() => console.log("✅ Database Connected Successfully"))
     .catch(err => console.error("❌ DB Error:", err));
 
-// جداول البيانات
+// جداول البيانات - مع إضافة limit المشاهدات
 const User = mongoose.model('User', new mongoose.Schema({
     username: String,
     email: { type: String, unique: true },
     password: String,
-    enrolled_courses: { type: [String], default: [] },
-    device_info: { type: String, default: null }
+    // الكورسات المفعلة مع عدد المشاهدات
+    enrolled_courses: {
+        type: Map,
+        of: {
+            activated: { type: Boolean, default: true },
+            views: { type: Number, default: 0 },
+            max_views: { type: Number, default: 3 }
+        },
+        default: {}
+    }
 }));
 
 const Code = mongoose.model('Code', new mongoose.Schema({
@@ -46,22 +54,18 @@ let courses = [
 
 // ==================== المسارات ====================
 
-// الصفحة الرئيسية
 app.get('/', (req, res) => res.redirect('/login'));
 
-// صفحة تسجيل الدخول
 app.get('/login', (req, res) => res.render('login', { 
     error: null,
     success: null
 }));
 
-// صفحة التسجيل
 app.get('/signup', (req, res) => res.render('signup', { 
     error: null,
     success: null
 }));
 
-// تسجيل مستخدم جديد
 app.post('/signup', async (req, res) => {
     try { 
         await User.create(req.body); 
@@ -78,7 +82,6 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// تسجيل الدخول
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email, password });
@@ -86,7 +89,6 @@ app.post('/login', async (req, res) => {
     if (user) { 
         req.session.userId = user._id;
         
-        // إذا كان الأدمن
         if (email === 'admin@medo.com') {
             req.session.isAdmin = true;
             return res.redirect('/admin');
@@ -102,15 +104,17 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// الصفحة الرئيسية للطلاب
 app.get('/home', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const user = await User.findById(req.session.userId);
+    
+    // تحويل Map إلى مصفوفة للاستخدام في الـ View
+    const enrolledObj = user.enrolled_courses ? Object.fromEntries(user.enrolled_courses) : {};
+    
     res.render('index', { 
         courses, 
-        enrolledList: user.enrolled_courses || [], 
+        enrolledList: enrolledObj, 
         username: user.username,
-        deviceMatch: true,
         error: null,
         success: null
     });
@@ -124,26 +128,41 @@ app.post('/activate/:courseId', async (req, res) => {
     const codeDoc = await Code.findOne({ code: activationCode, course_id: req.params.courseId, is_used: false });
     const user = await User.findById(req.session.userId);
     
+    // تحويل Map إلى object
+    let enrolledObj = user.enrolled_courses ? Object.fromEntries(user.enrolled_courses) : {};
+    
     if (codeDoc) {
-        await User.findByIdAndUpdate(req.session.userId, { $addToSet: { enrolled_courses: req.params.courseId } });
+        // تفعيل الكورس مع 3 مشاهدات
+        if (!enrolledObj[req.params.courseId]) {
+            enrolledObj[req.params.courseId] = {
+                activated: true,
+                views: 0,
+                max_views: 3
+            };
+        }
+        
+        await User.findByIdAndUpdate(req.session.userId, {
+            enrolled_courses: enrolledObj
+        });
+        
         codeDoc.is_used = true;
         await codeDoc.save();
         
         const updatedUser = await User.findById(req.session.userId);
+        const updatedEnrolled = Object.fromEntries(updatedUser.enrolled_courses);
+        
         return res.render('index', { 
             courses, 
-            enrolledList: updatedUser.enrolled_courses || [], 
+            enrolledList: updatedEnrolled, 
             username: updatedUser.username,
-            deviceMatch: true,
             error: null,
-            success: "✅ مبروك! الكورس اتفعل عندك"
+            success: "✅ مبروك! الكورس اتفعل عندك (3 مشاهدات)"
         });
     } else {
         return res.render('index', { 
             courses, 
-            enrolledList: user.enrolled_courses || [], 
+            enrolledList: enrolledObj, 
             username: user.username,
-            deviceMatch: true,
             error: "❌ الكود غلط أو مستخدم",
             success: null
         });
@@ -152,7 +171,6 @@ app.post('/activate/:courseId', async (req, res) => {
 
 // ==================== لوحة الأدمن ====================
 
-// صفحة الأدمن
 app.get('/admin', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const students = await User.find({});
@@ -165,7 +183,6 @@ app.get('/admin', async (req, res) => {
     });
 });
 
-// إضافة كورس جديد
 app.post('/admin/add-course', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { title, vid, thumb } = req.body;
@@ -182,7 +199,6 @@ app.post('/admin/add-course', async (req, res) => {
     });
 });
 
-// إضافة كود تفعيل
 app.post('/admin/add-code', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { newCode, courseId } = req.body;
@@ -209,29 +225,17 @@ app.post('/admin/add-code', async (req, res) => {
     }
 });
 
-// حذف طالب
 app.get('/admin/delete-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     await User.findByIdAndDelete(req.params.id);
     res.redirect('/admin');
 });
 
-// تصفير جهاز طالب
-app.get('/admin/reset-student/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    await User.findByIdAndUpdate(req.params.id, { device_info: null });
-    res.redirect('/admin');
-});
-
-// ==================== الأخرى ====================
-
-// تسجيل خروج
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/login');
 });
 
-// توليد أكواد الأدمن (اختياري)
 app.get('/admin/generate-keys-secret', async (req, res) => {
     const ids = ["c1", "c2"];
     for (let id of ids) {
@@ -243,6 +247,5 @@ app.get('/admin/generate-keys-secret', async (req, res) => {
     res.send("✅ تم توليد 20 كود جديد بنجاح!");
 });
 
-// تشغيل السيرفر
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 السيرفر شغال الآن على بورت ${PORT}`));

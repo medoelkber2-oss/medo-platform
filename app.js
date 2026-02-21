@@ -106,6 +106,29 @@ app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login')
 
 // ================= لوحة التحكم (Admin Routes) =================
 
+// مسار تصفير حساب الطالب (إلغاء تفعيل كل الكورسات عنده)
+app.get('/admin/reset-student/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    try {
+        await User.findByIdAndUpdate(req.params.id, { courses: '{}' });
+        res.redirect('/admin#students-section');
+    } catch (err) {
+        res.send("خطأ في تصفير الحساب");
+    }
+});
+
+// مسار حذف حساب الطالب نهائياً
+app.get('/admin/delete-student/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.redirect('/admin#students-section');
+    } catch (err) {
+        res.send("خطأ في حذف الحساب");
+    }
+});
+
+
 // جلب بيانات محاضرة معينة للتعديل (API)
 app.get('/admin/lecture-data/:courseId/:lecIndex', async (req, res) => {
     if (!req.session.isAdmin) return res.status(403).json({ error: 'Unauthorized' });
@@ -197,4 +220,5 @@ app.get('/admin/delete-all-codes', async (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 

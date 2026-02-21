@@ -11,50 +11,41 @@
         .sidebar { width: 260px; background: #1e293b; position: fixed; height: 100vh; padding: 20px; border-left: 1px solid rgba(255,255,255,0.1); }
         .main { margin-right: 260px; padding: 40px; }
         .card-custom { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 25px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
-        .table-custom { width: 100%; color: white; margin-top: 20px; }
-        .table-custom th { color: #6366f1; }
-        .btn-action { padding: 5px 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; margin-left: 5px; }
-        .code-list { max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; }
-        .code-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .btn-copy { cursor: pointer; color: #6366f1; transition: 0.2s; margin-right: 10px; }
+        .btn-copy:hover { transform: scale(1.2); color: #10b981; }
+        .code-box { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .active-badge { background: #6366f1; color: white; padding: 2px 10px; border-radius: 50px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <h2 class="text-primary fw-black text-center mb-5">مستر ميدو</h2>
-        <a href="#add" class="d-block text-white text-decoration-none mb-3"><i class="fas fa-plus me-2"></i> إضافة كورس</a>
-        <a href="#students" class="d-block text-white text-decoration-none mb-3"><i class="fas fa-users me-2"></i> إدارة الطلاب</a>
-        <a href="#codes" class="d-block text-white text-decoration-none mb-3"><i class="fas fa-key me-2"></i> الأكواد</a>
-        <hr>
-        <a href="/logout" class="btn btn-danger w-100">تسجيل الخروج</a>
+        <nav class="nav flex-column gap-3">
+            <a href="#students" class="text-white text-decoration-none"><i class="fas fa-users me-2"></i> إدارة الطلاب</a>
+            <a href="#codes" class="text-white text-decoration-none"><i class="fas fa-key me-2"></i> الأكواد المتوفرة</a>
+            <a href="/logout" class="btn btn-outline-danger mt-5">تسجيل خروج</a>
+        </nav>
     </div>
 
     <div class="main">
-        <h1>Dashboard الإدارة ⚙️</h1>
-
-        <div class="card-custom" id="add">
-            <h3>إضافة كورس جديد</h3>
-            <form action="/admin/add-course" method="POST" class="row g-3">
-                <div class="col-md-4"><input type="text" name="title" class="form-control" placeholder="عنوان الكورس" required></div>
-                <div class="col-md-4"><input type="text" name="vid" class="form-control" placeholder="ID فيديو يوتيوب" required></div>
-                <div class="col-md-4"><input type="text" name="thumb" class="form-control" placeholder="رابط الصورة"></div>
-                <div class="col-12"><button type="submit" class="btn btn-primary">نشر الكورس</button></div>
-            </form>
-        </div>
-
         <div class="card-custom" id="students">
             <h3>قائمة الطلاب (<%= students.length %>)</h3>
             <table class="table table-dark table-hover mt-3">
                 <thead>
-                    <tr><th>الاسم</th><th>البريد</th><th>التحكم</th></tr>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الكورسات المفعلة</th>
+                        <th>الإجراءات</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <% students.forEach(s => { %>
                     <tr>
                         <td><%= s.username %></td>
-                        <td><%= s.email %></td>
+                        <td><span class="active-badge"><%= s.activeCoursesCount %> كورس</span></td>
                         <td>
-                            <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف الطالب؟')">حذف</a>
-                            <a href="/admin/reset-student/<%= s._id %>" class="btn btn-sm btn-warning" onclick="return confirm('تصفير الحساب؟ سيتم قفل الكورسات عنه.')">تصفير الحساب</a>
+                            <a href="/admin/reset-student/<%= s._id %>" class="btn btn-sm btn-warning" onclick="return confirm('تصفير حساب الطالب؟')">تصفير</a>
+                            <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger">حذف</a>
                         </td>
                     </tr>
                     <% }) %>
@@ -63,19 +54,38 @@
         </div>
 
         <div class="card-custom" id="codes">
-            <div class="d-flex justify-content-between mb-3">
-                <h3>الأكواد المنشأة (<%= codes.length %>)</h3>
-                <a href="/admin/generate-keys" class="btn btn-sm btn-outline-primary">توليد 20 كود جديد</a>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>الأكواد (<%= codes.length %>)</h3>
+                <div>
+                    <a href="/admin/generate-keys" class="btn btn-primary btn-sm">توليد 20 كود</a>
+                    <a href="/admin/delete-all-codes" class="btn btn-danger btn-sm" onclick="return confirm('حذف جميع الأكواد نهائياً؟')">مسح الكل</a>
+                </div>
             </div>
-            <div class="code-list">
+            
+            <div class="row">
                 <% codes.forEach(c => { %>
-                <div class="code-item">
-                    <span><%= c.code %> - <small class="<%= c.used ? 'text-danger' : 'text-success' %>"><%= c.used ? 'مستخدم' : 'صالح' %></small></span>
-                    <a href="/admin/delete-code/<%= c._id %>" class="text-danger"><i class="fas fa-trash"></i></a>
+                <div class="col-md-4">
+                    <div class="code-box">
+                        <span class="fw-bold"><%= c.code %></span>
+                        <div>
+                            <i class="fas fa-copy btn-copy" title="نسخ" onclick="copyToClipboard('<%= c.code %>', this)"></i>
+                            <a href="/admin/delete-code/<%= c._id %>" class="text-danger"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
                 </div>
                 <% }) %>
             </div>
         </div>
     </div>
+
+    <script>
+        function copyToClipboard(text, iconElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalClass = iconElement.className;
+                iconElement.className = "fas fa-check text-success";
+                setTimeout(() => { iconElement.className = originalClass; }, 1500);
+            });
+        }
+    </script>
 </body>
 </html>

@@ -9,7 +9,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware لتوليد device ID من الـ session
+// Middleware لتوليد device ID
 app.use((req, res, next) => {
     if (!req.session.deviceId) {
         req.session.deviceId = Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -25,28 +25,22 @@ mongoose.connect(mongoURI)
     .then(() => console.log("✅ Database Connected Successfully"))
     .catch(err => console.error("❌ DB Error:", err));
 
-// جداول البيانات
-const User = mongoose.model('User', new mongoose.Schema({
+// جداول البيانات - بدون Map
+const UserSchema = new mongoose.Schema({
     username: String,
     email: { type: String, unique: true },
     password: String,
-    enrolled_courses: {
-        type: Map,
-        of: {
-            activated: { type: Boolean, default: true },
-            views: { type: Number, default: 0 },
-            max_views: { type: Number, default: 3 },
-            device_id: { type: String, default: null }
-        },
-        default: {}
-    }
-}));
+    enrolled_courses: { type: String, default: '{}' } // تخزين كـ JSON String
+});
 
-const Code = mongoose.model('Code', new mongoose.Schema({
+const CodeSchema = new mongoose.Schema({
     code: { type: String, unique: true },
     course_id: String,
     is_used: { type: Boolean, default: false }
-}));
+});
+
+const User = mongoose.model('User', UserSchema);
+const Code = mongoose.model('Code', CodeSchema);
 
 app.use(session({
     secret: 'medo-platform-secret-2026',
@@ -59,6 +53,15 @@ let courses = [
     { id: "c1", title: "مراجعة الفيزياء - 1 ثانوي", vid: "dQw4w9WgXcQ", thumb: "https://images.unsplash.com/photo-1636466484362-d26e79aa59d6?w=500" },
     { id: "c2", title: "كيمياء اللغات - 2 ثانوي", vid: "9Wp3-6n-8f0", thumb: "https://images.unsplash.com/photo-1532187875605-2fe358711e24?w=500" }
 ];
+
+// دالة مساعدة لتحويل JSON
+function getEnrolledCourses(user) {
+    try {
+        return user.enrolled_courses ? JSON.parse(user.enrolled_courses) : {};
+    } catch {
+        return {};
+    }
+}
 
 // ==================== المسارات ====================
 
@@ -95,7 +98,7 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({ email, password });
     
     if (user) { 
-        req.session.userId = user._id;
+        req.session.userId = user._id.toString();
         
         if (email === 'admin@medo.com') {
             req.session.isAdmin = true;
@@ -114,103 +117,99 @@ app.post('/login', async (req, res) => {
 
 app.get('/home', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
-    const user = await User.findById(req.session.userId);
     
-    let enrolledObj = {};
-    if (user.enrolled_courses) {
-        user.enrolled_courses.forEach((value, key) => {
-            enrolledObj[key] = value;
+    try {
+        const user = await User.findById(req.session.userId);
+        if (!user) {
+            req.session.destroy();
+            return res.redirect('/login');
+        }
+        
+        const enrolledObj = getEnrolledCourses(user);
+        
+        res.render('index', { 
+            courses, 
+            enrolledList: enrolledObj, 
+            username: user.username,
+            deviceId: req.deviceId,
+            error: null,
+            success: null
         });
+    } catch (err) {
+        console.error("Error in /home:", err);
+        res.redirect('/login');
     }
-    
-    res.render('index', { 
-        courses, 
-        enrolledList: enrolledObj, 
-        username: user.username,
-        deviceId: req.deviceId,
-        error: null,
-        success: null
-    });
 });
 
 // تفعيل كورس
 app.post('/activate/:courseId', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     
-    const { activationCode } = req.body;
-    const codeDoc = await Code.findOne({ code: activationCode, course_id: req.params.courseId, is_used: false });
-    const user = await User.findById(req.session.userId);
-    
-    let enrolledObj = {};
-    if (user.enrolled_courses) {
-        user.enrolled_courses.forEach((value, key) => {
-            enrolledObj[key] = value;
-        });
-    }
-    
-    const courseData = enrolledObj[req.params.courseId];
-    
-    // فحص إذا كان مرتبط بجهاز آخر
-    if (courseData && courseData.device_id && courseData.device_id !== req.deviceId) {
-        return res.render('index', { 
-            courses, 
-            enrolledList: enrolledObj, 
-            username: user.username,
-            deviceId: req.deviceId,
-            error: "❌ هذا الكورس مرتبط بجهاز آخر! يرجى التفعيل من جهازك الأصلي",
-            success: null
-        });
-    }
-    
-    if (codeDoc) {
-        if (!enrolledObj[req.params.courseId]) {
-            enrolledObj[req.params.courseId] = {
-                activated: true,
-                views: 0,
-                max_views: 3,
-                device_id: req.deviceId
-            };
-        } else {
-            enrolledObj[req.params.courseId] = {
-                activated: true,
-                views: 0,
-                max_views: 3,
-                device_id: req.deviceId
-            };
+    try {
+        const { activationCode } = req.body;
+        const codeDoc = await Code.findOne({ code: activationCode, course_id: req.params.courseId, is_used: false });
+        const user = await User.findById(req.session.userId);
+        
+        if (!user) {
+            req.session.destroy();
+            return res.redirect('/login');
         }
         
-        await User.findByIdAndUpdate(req.session.userId, {
-            enrolled_courses: enrolledObj
-        });
+        let enrolledObj = getEnrolledCourses(user);
+        const courseData = enrolledObj[req.params.courseId];
         
-        codeDoc.is_used = true;
-        await codeDoc.save();
-        
-        const updatedUser = await User.findById(req.session.userId);
-        let updatedEnrolled = {};
-        if (updatedUser.enrolled_courses) {
-            updatedUser.enrolled_courses.forEach((value, key) => {
-                updatedEnrolled[key] = value;
+        // فحص إذا كان مرتبط بجهاز آخر
+        if (courseData && courseData.device_id && courseData.device_id !== req.deviceId) {
+            return res.render('index', { 
+                courses, 
+                enrolledList: enrolledObj, 
+                username: user.username,
+                deviceId: req.deviceId,
+                error: "❌ هذا الكورس مرتبط بجهاز آخر! يرجى التفعيل من جهازك الأصلي",
+                success: null
             });
         }
         
-        return res.render('index', { 
-            courses, 
-            enrolledList: updatedEnrolled, 
-            username: updatedUser.username,
-            deviceId: req.deviceId,
-            error: null,
-            success: "✅ مبروك! الكورس اتفعل عندك (مرتبط بجهازك - 3 مشاهدات)"
-        });
-    } else {
-        return res.render('index', { 
-            courses, 
-            enrolledList: enrolledObj, 
-            username: user.username,
-            deviceId: req.deviceId,
-            error: "❌ الكود غلط أو مستخدم",
-            success: null
-        });
+        if (codeDoc) {
+            // تفعيل الكورس مع ربط الجهاز
+            enrolledObj[req.params.courseId] = {
+                activated: true,
+                views: 0,
+                max_views: 3,
+                device_id: req.deviceId
+            };
+            
+            await User.findByIdAndUpdate(req.session.userId, {
+                enrolled_courses: JSON.stringify(enrolledObj)
+            });
+            
+            codeDoc.is_used = true;
+            await codeDoc.save();
+            
+            const updatedUser = await User.findById(req.session.userId);
+            const updatedEnrolled = getEnrolledCourses(updatedUser);
+            
+            return res.render('index', { 
+                courses, 
+                enrolledList: updatedEnrolled, 
+                username: updatedUser.username,
+                deviceId: req.deviceId,
+                error: null,
+                success: "✅ مبروك! الكورس اتفعل عندك (مرتبط بجهازك - 3 مشاهدات)"
+            });
+        } else {
+            return res.render('index', { 
+                courses, 
+                enrolledList: enrolledObj, 
+                username: user.username,
+                deviceId: req.deviceId,
+                error: "❌ الكود غلط أو مستخدم",
+                success: null
+            });
+        }
+    } catch (err) {
+        console.error("Error in activate:", err);
+        res.redirect('/home');
     }
 });
 

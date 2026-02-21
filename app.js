@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 
@@ -10,6 +11,17 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware للتعامل مع device ID
+app.use((req, res, next) => {
+    let deviceId = req.cookies.deviceId;
+    if (!deviceId) {
+        deviceId = crypto.randomBytes(16).toString('hex');
+        res.cookie('deviceId', deviceId, { maxAge: 365 * 24 * 60 * 60 * 1000 }); // سنة كاملة
+    }
+    req.deviceId = deviceId;
+    next();
+});
+
 // الربط بالداتا بيز
 const mongoURI = (process.env.MONGO_URI || "mongodb+srv://medoelkber2_db_user:I7vueTTD6aU9xB4C@cluster0.dbtgo0g.mongodb.net/myPlatform?retryWrites=true&w=majority").trim();
 
@@ -17,18 +29,19 @@ mongoose.connect(mongoURI)
     .then(() => console.log("✅ Database Connected Successfully"))
     .catch(err => console.error("❌ DB Error:", err));
 
-// جداول البيانات - مع إضافة limit المشاهدات
+// جداول البيانات
 const User = mongoose.model('User', new mongoose.Schema({
     username: String,
     email: { type: String, unique: true },
     password: String,
-    // الكورسات المفعلة مع عدد المشاهدات
+    // الكورسات المفعلة مع عدد المشاهدات وربط الجهاز
     enrolled_courses: {
         type: Map,
         of: {
             activated: { type: Boolean, default: true },
             views: { type: Number, default: 0 },
-            max_views: { type: Number, default: 3 }
+            max_views: { type: Number, default: 3 },
+            device_id: { type: String, default: null } // ربط الجهاز
         },
         default: {}
     }
@@ -108,19 +121,19 @@ app.get('/home', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const user = await User.findById(req.session.userId);
     
-    // تحويل Map إلى مصفوفة للاستخدام في الـ View
     const enrolledObj = user.enrolled_courses ? Object.fromEntries(user.enrolled_courses) : {};
     
     res.render('index', { 
         courses, 
         enrolledList: enrolledObj, 
         username: user.username,
+        deviceId: req.deviceId,
         error: null,
         success: null
     });
 });
 
-// تفعيل كورس
+// تفعيل كورس - مع ربط الجهاز
 app.post('/activate/:courseId', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     
@@ -128,16 +141,37 @@ app.post('/activate/:courseId', async (req, res) => {
     const codeDoc = await Code.findOne({ code: activationCode, course_id: req.params.courseId, is_used: false });
     const user = await User.findById(req.session.userId);
     
-    // تحويل Map إلى object
     let enrolledObj = user.enrolled_courses ? Object.fromEntries(user.enrolled_courses) : {};
+    const courseData = enrolledObj[req.params.courseId];
+    
+    // 检查是否已经绑定到其他设备
+    if (courseData && courseData.device_id && courseData.device_id !== req.deviceId) {
+        return res.render('index', { 
+            courses, 
+            enrolledList: enrolledObj, 
+            username: user.username,
+            deviceId: req.deviceId,
+            error: "❌ هذا الكورس مرتبط بجهاز آخر! يرجى التفعيل من جهازك الأصلي",
+            success: null
+        });
+    }
     
     if (codeDoc) {
-        // تفعيل الكورس مع 3 مشاهدات
+        // تفعيل الكورس مع ربط الجهاز الحالي
         if (!enrolledObj[req.params.courseId]) {
             enrolledObj[req.params.courseId] = {
                 activated: true,
                 views: 0,
-                max_views: 3
+                max_views: 3,
+                device_id: req.deviceId // ربط بالجهاز الحالي
+            };
+        } else {
+            // إعادة التفعيل تحسب مشاهدات جديدة وتربط الجهاز
+            enrolledObj[req.params.courseId] = {
+                activated: true,
+                views: 0,
+                max_views: 3,
+                device_id: req.deviceId
             };
         }
         
@@ -155,14 +189,16 @@ app.post('/activate/:courseId', async (req, res) => {
             courses, 
             enrolledList: updatedEnrolled, 
             username: updatedUser.username,
+            deviceId: req.deviceId,
             error: null,
-            success: "✅ مبروك! الكورس اتفعل عندك (3 مشاهدات)"
+            success: "✅ مبروك! الكورس اتفعل عندك (مرتبط بجهازك - 3 مشاهدات)"
         });
     } else {
         return res.render('index', { 
             courses, 
             enrolledList: enrolledObj, 
             username: user.username,
+            deviceId: req.deviceId,
             error: "❌ الكود غلط أو مستخدم",
             success: null
         });

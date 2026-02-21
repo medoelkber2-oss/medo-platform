@@ -1,288 +1,108 @@
+
+---
+
+## 2. admin.ejs (القديم البسيط):
+
+```html
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - مستر ميدو</title>
+    <title>لوحة تحكم الأدمن 🛠️</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --card-bg: #16213e;
-            --text: #eaeaea;
-        }
+        body { font-family: 'Cairo', sans-serif; background: #f8f9fa; padding: 20px; }
+        .card { border-radius: 15px; border: none; }
+    </style>
+</head>
+<body>
+    <div class="container bg-white p-4 shadow rounded-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary fw-bold">لوحة تحكم مستر ميدو 🛠️</h2>
+            <a href="/logout" class="btn btn-danger btn-sm">تسجيل خروج</a>
+        </div>
+
+        <% if (success) { %>
+        <div class="alert alert-success text-center"><%= success %></div>
+        <% } %>
+        <% if (error) { %>
+        <div class="alert alert-danger text-center"><%= error %></div>
+        <% } %>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <a href="/admin/generate-keys" class="btn btn-success w-100">🎲 توليد 20 كود جديد</a>
+            </div>
+            <div class="col-md-6">
+                <a href="/admin/delete-all-codes" class="btn btn-danger w-100" onclick="return confirm('هل أنت متأكد؟')">🗑️ مسح كل الأكواد</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card p-3 mb-4 shadow-sm border-primary">
+                    <h5 class="fw-bold">إضافة كورس جديد 🎥</h5>
+                    <form action="/admin/add-course" method="POST">
+                        <div class="mb-2"><input type="text" name="title" class="form-control" placeholder="اسم الكورس" required></div>
+                        <div class="mb-2"><input type="text" name="vid" class="form-control" placeholder="ID يوتيوب" required></div>
+                        <div class="mb-2"><input type="text" name="thumb" class="form-control" placeholder="رابط الصورة" required></div>
+                        <button type="submit" class="btn btn-primary w-100">إضافة</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card p-3 mb-4 shadow-sm border-warning">
+                    <h5 class="fw-bold">إضافة كود تفعيل 🔑</h5>
+                    <form action="/admin/add-code" method="POST">
+                        <div class="mb-2"><input type="text" name="newCode" class="form-control" placeholder="الكود" required></div>
+                        <button type="submit" class="btn btn-warning w-100">إضافة الكود</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h5 class="fw-bold mt-4">إدارة الطلاب 👥</h5>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr><th>الاسم</th><th>الإيميل</th><th>الكورسات</th><th>الإجراءات</th></tr>
+                </thead>
+                <tbody>
+                    <% students.forEach(s => { %>
+                    <tr>
+                        <td><%= s.username %></td>
+                        <td><%= s.email %></td>
+                        <td>
+                            <% let enrolled = {}; try { enrolled = JSON.parse(s.courses || '{}'); } catch(e) {} %>
+                            <span class="badge <%= Object.keys(enrolled).length > 0 ? 'bg-success' : 'bg-secondary' %>">
+                                <%= Object.keys(enrolled).length %> كورس
+                            </span>
+                        </td>
+                        <td><a href="/admin/delete-student/<%= s._id %>" class="btn btn-outline-danger btn-sm">حذف</a></td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+        <h5 class="fw-bold mt-5">الأكواد 🔑 (<%= codes.length %>)</h5>
+        <div class="d-flex flex-wrap gap-2">
+            <% codes.forEach(c => { %>
+                <div class="badge <%= c.used ? 'bg-secondary' : 'bg-info' %> p-2 d-flex align-items-center gap-2">
+                    <span><%= c.code %></span>
+                    <a href="/admin/delete-code/<%= c._id %>" class="text-white text-decoration-none small">✕</a>
+                </div>
+            <% }) %>
+        </div>
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: var(--text);
-        }
-        
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        /* Header */
-        .header {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 25px 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            animation: slideDown 0.5s ease;
-        }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .header h1 {
-            font-weight: 900;
-            font-size: 2rem;
-            background: linear-gradient(45deg, #4361ee, #f72585);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        /* Cards */
-        .stats-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--danger));
-        }
-        
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        
-        .stats-card h3 {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            margin-bottom: 10px;
-        }
-        
-        .stats-card .number {
-            font-size: 2.5rem;
-            font-weight: 900;
-        }
-        
-        /* Action Buttons */
-        .action-btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 15px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .action-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        
-        .btn-generate {
-            background: linear-gradient(135deg, #00b09b, #96c93d);
-            color: white;
-        }
-        
-        .btn-delete {
-            background: linear-gradient(135deg, #ff6b6b, #ee5253);
-            color: white;
-        }
-        
-        .btn-add {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-        
-        /* Forms */
-        .form-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 30px;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        
-        .form-card h4 {
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        .form-control {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        
-        .form-control:focus {
-            background: rgba(255,255,255,0.15);
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(67,97,238,0.3);
-            color: white;
-        }
-        
-        .form-control::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-        
-        /* Alerts */
-        .alert {
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            animation: slideIn 0.5s ease;
-            border: none;
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, rgba(0,176,155,0.2), rgba(150,201,61,0.2));
-            border: 1px solid #00b09b;
-            color: #00b09b;
-        }
-        
-        .alert-danger {
-            background: linear-gradient(135deg, rgba(247,37,133,0.2), rgba(238,82,83,0.2));
-            border: 1px solid #f72585;
-            color: #f72585;
-        }
-        
-        /* Tables */
-        .table-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 30px;
-            animation: fadeIn 0.5s ease 0.2s both;
-        }
-        
-        .table-card h4 {
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        .table {
-            color: var(--text);
-        }
-        
-        .table thead th {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            padding: 15px;
-            font-weight: 600;
-        }
-        
-        .table tbody td {
-            padding: 15px;
-            border-color: rgba(255,255,255,0.1);
-        }
-        
-        .table tbody tr {
-            transition: all 0.3s ease;
-        }
-        
-        .table tbody tr:hover {
-            background: rgba(255,255,255,0.05);
-            transform: scale(1.01);
-        }
-        
-        /* Code Badges */
-        .code-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin: 3px;
-            animation: popIn 0.3s ease;
-        }
-        
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        
-        .code-badge.available {
-            background: linear-gradient(135deg, rgba(67,97,238,0.3), rgba(63,55,201,0.3));
-            border: 1px solid #4361ee;
-        }
-        
-        .code-badge.used {
-            background: rgba(255,255,255,0.1);
-            opacity: 0.5;
-            text-decoration: line-through;
-        }
-        
-        .delete-code {
-            color:
+        <% if (codes.length === 0) { %>
+            <p class="text-muted text-center mt-3">لا توجد أكواد متوفرة</p>
+        <% } %>
+    </div>
+</body>
+</html>

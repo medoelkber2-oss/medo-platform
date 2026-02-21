@@ -65,11 +65,11 @@ app.get('/admin', async (req, res) => {
     const codes = await Code.find({});
     const dbCourses = await Course.find({});
 
-    // حساب عدد الكورسات المفعلة لكل طالب
+    // حساب عدد الكورسات لكل طالب
     const students = studentsRaw.map(s => {
         const enrolled = JSON.parse(s.courses || '{}');
         const count = Object.keys(enrolled).length;
-        return { ...s._doc, activeCoursesCount: count };
+        return { ...s._doc, activeCount: count };
     });
 
     res.render('admin', { students, codes, courses: dbCourses });
@@ -109,5 +109,4 @@ app.get('/admin/delete-student/:id', async (req, res) => {
 
 app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`🚀 Server on ${PORT}`));
+app.listen(8080, () => console.log("🚀 Server Ready on port 8080"));

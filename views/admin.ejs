@@ -116,6 +116,61 @@
         <div class="card-custom">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5><i class="fas fa-key me-2"></i>أكواد التفعيل</h5>
+
+
+<div class="card-custom mt-4" id="students-section">
+    <h5><i class="fas fa-users me-2 text-info"></i>إدارة الطلاب المسجلين</h5>
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mt-3">
+            <thead>
+                <tr>
+                    <th>اسم الطالب</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الكورسات المفعلة</th>
+                    <th>التحكم</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% students.forEach(student => { 
+                    // تحويل نص الكورسات لكائن عشان نعرف عددهم
+                    let enrolledCount = 0;
+                    try {
+                        let coursesObj = JSON.parse(student.courses || '{}');
+                        enrolledCount = Object.keys(coursesObj).length;
+                    } catch(e) { enrolledCount = 0; }
+                %>
+                <tr>
+                    <td><%= student.username %></td>
+                    <td><%= student.email %></td>
+                    <td>
+                        <span class="badge bg-primary"><%= enrolledCount %> كورس</span>
+                    </td>
+                    <td>
+                        <a href="/admin/reset-student/<%= student._id %>" 
+                           class="btn btn-sm btn-warning me-1" 
+                           onclick="return confirm('هل أنت متأكد من تصفير حساب الطالب؟ سيتم إلغاء تفعيل جميع الكورسات لديه.')">
+                            <i class="fas fa-undo"></i> تصفير
+                        </a>
+                        
+                        <a href="/admin/delete-student/<%= student._id %>" 
+                           class="btn btn-sm btn-danger" 
+                           onclick="return confirm('هل أنت متأكد من حذف حساب الطالب نهائياً؟')">
+                            <i class="fas fa-user-slash"></i> حذف
+                        </a>
+                    </td>
+                </tr>
+                <% }) %>
+                <% if(students.length == 0) { %>
+                    <tr><td colspan="4" class="text-center text-secondary">لا يوجد طلاب مسجلين بعد</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+
                 <a href="/admin/generate-keys" class="btn btn-sm btn-warning fw-bold">توليد 20 كود جديد</a>
             </div>
             <div class="row g-2" style="max-height: 250px; overflow-y: auto;">

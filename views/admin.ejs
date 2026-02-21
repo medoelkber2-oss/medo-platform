@@ -8,19 +8,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         :root {
             --primary: #6366f1;
             --secondary: #8b5cf6;
             --success: #10b981;
             --danger: #ef4444;
-            --warning: #f59e0b;
-            --dark: #0f172a;
-            --light: #f1f5f9;
             --glass: rgba(255, 255, 255, 0.08);
             --border: rgba(255, 255, 255, 0.1);
         }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Cairo', sans-serif;
@@ -50,17 +47,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .header h1 {
-            color: white;
-            font-weight: 900;
-            font-size: 1.8rem;
-        }
-        
-        .header h1 span {
-            background: linear-gradient(135deg, #6366f1, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .header h1 { color: white; font-weight: 900; font-size: 1.8rem; }
+        .header h1 span { background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .btn-logout {
             background: linear-gradient(135deg, #ef4444, #dc2626);
@@ -77,10 +65,7 @@
             gap: 8px;
         }
         
-        .btn-logout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
-        }
+        .btn-logout:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); }
         
         /* Alert */
         .alert-custom {
@@ -124,56 +109,19 @@
             display: block;
         }
         
-        .action-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
+        .action-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
+        .action-card i { font-size: 2.5rem; margin-bottom: 15px; }
+        .action-card h3 { color: white; font-weight: 700; margin-bottom: 5px; }
+        .action-card p { color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; }
         
-        .action-card i {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-        }
-        
-        .action-card h3 {
-            color: white;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .action-card p {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.9rem;
-        }
-        
-        .action-generate {
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-        
-        .action-generate:hover {
-            border-color: #10b981;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-        }
-        
+        .action-generate:hover { border-color: #10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1)); }
         .action-generate i { color: #10b981; }
         
-        .action-delete {
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-        
-        .action-delete:hover {
-            border-color: #ef4444;
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
-        }
-        
+        .action-delete:hover { border-color: #ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1)); }
         .action-delete i { color: #ef4444; }
         
-        /* Forms Section */
-        .forms-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
+        /* Forms */
+        .forms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 30px; }
         
         .form-card {
             background: var(--glass);
@@ -189,25 +137,8 @@
             to { opacity: 1; transform: scale(1); }
         }
         
-        .form-card h3 {
-            color: white;
-            font-weight: 800;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .form-card h3 i {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
+        .form-card h3 { color: white; font-weight: 800; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
+        .form-card h3 i { width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         
         .form-control {
             background: rgba(255, 255, 255, 0.05);
@@ -221,17 +152,8 @@
             transition: all 0.3s ease;
         }
         
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary);
-            box-shadow: 0 0 25px rgba(99, 102, 241, 0.3);
-            color: white;
-            outline: none;
-        }
-        
-        .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
+        .form-control:focus { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); box-shadow: 0 0 25px rgba(99, 102, 241, 0.3); color: white; outline: none; }
+        .form-control::placeholder { color: rgba(255, 255, 255, 0.4); }
         
         .btn-submit {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -247,10 +169,7 @@
             font-family: 'Cairo', sans-serif;
         }
         
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
-        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4); }
         
         /* Table */
         .table-card {
@@ -261,104 +180,38 @@
             margin-bottom: 30px;
             backdrop-filter: blur(20px);
             animation: fadeIn 0.5s ease 0.2s both;
-            overflow: hidden;
+            overflow-x: auto;
         }
         
-        .table-card h3 {
-            color: white;
-            font-weight: 800;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .table-card h3 { color: white; font-weight: 800; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
+        .table-card h3 i { width: 45px; height: 45px; background: linear-gradient(135deg, #ec4899, #f43f5e); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         
-        .table-card h3 i {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #ec4899, #f43f5e);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+        .table-custom thead th { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.7); padding: 18px 20px; font-weight: 700; text-align: right; border: none; }
+        .table-custom thead th:first-child { border-radius: 14px 0 0 14px; }
+        .table-custom thead th:last-child { border-radius: 0 14px 14px 0; }
+        .table-custom tbody tr { background: rgba(255, 255, 255, 0.03); transition: all 0.3s ease; }
+        .table-custom tbody tr:hover { background: rgba(255, 255, 255, 0.08); transform: scale(1.01); }
+        .table-custom tbody td { padding: 18px 20px; color: white; border: none; }
         
-        .table-custom {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-        }
+        .badge-custom { padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; }
+        .badge-active { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); color: #10b981; border: 1px solid #10b981; }
+        .badge-inactive { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); }
         
-        .table-custom thead th {
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.7);
-            padding: 18px 20px;
-            font-weight: 700;
-            text-align: right;
-            border: none;
-        }
-        
-        .table-custom thead th:first-child {
-            border-radius: 14px 0 0 14px;
-        }
-        
-        .table-custom thead th:last-child {
-            border-radius: 0 14px 14px 0;
-        }
-        
-        .table-custom tbody tr {
-            background: rgba(255, 255, 255, 0.03);
-            transition: all 0.3s ease;
-        }
-        
-        .table-custom tbody tr:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: scale(1.01);
-        }
-        
-        .table-custom tbody td {
-            padding: 18px 20px;
-            color: white;
-            border: none;
-        }
-        
-        .badge-custom {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-        
-        .badge-active {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
-            color: #10b981;
-            border: 1px solid #10b981;
-        }
-        
-        .badge-inactive {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .btn-delete {
+        .btn-delete-small {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             border: none;
             color: white;
-            padding: 10px 18px;
+            padding: 8px 15px;
             border-radius: 10px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            font-size: 0.85rem;
         }
         
-        .btn-delete:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-        }
+        .btn-delete-small:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); }
         
         /* Codes */
         .codes-card {
@@ -370,30 +223,10 @@
             animation: fadeIn 0.5s ease 0.3s both;
         }
         
-        .codes-card h3 {
-            color: white;
-            font-weight: 800;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .codes-card h3 { color: white; font-weight: 800; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
+        .codes-card h3 i { width: 45px; height: 45px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         
-        .codes-card h3 i {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .codes-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        .codes-grid { display: flex; flex-wrap: wrap; gap: 12px; }
         
         .code-item {
             display: inline-flex;
@@ -406,51 +239,15 @@
             transition: all 0.3s ease;
         }
         
-        .code-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
+        .code-item:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
+        .code-item.available { border-color: rgba(16, 185, 129, 0.3); }
+        .code-item.available span { color: #10b981; font-weight: 700; }
+        .code-item.used { opacity: 0.4; }
+        .code-item.used span { text-decoration: line-through; color: rgba(255, 255, 255, 0.5); }
+        .code-item .delete-btn { color: #ef4444; text-decoration: none; padding: 4px 8px; border-radius: 6px; transition: all 0.3s ease; }
+        .code-item .delete-btn:hover { background: rgba(239, 68, 68, 0.2); }
         
-        .code-item.available {
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-        
-        .code-item.available span {
-            color: #10b981;
-            font-weight: 700;
-        }
-        
-        .code-item.used {
-            opacity: 0.4;
-        }
-        
-        .code-item.used span {
-            text-decoration: line-through;
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .code-item .delete-btn {
-            color: #ef4444;
-            text-decoration: none;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-        
-        .code-item .delete-btn:hover {
-            background: rgba(239, 68, 68, 0.2);
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
+        .empty-state { text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.4); }
     </style>
 </head>
 <body>
@@ -491,30 +288,51 @@
         <div class="forms-grid">
             <!-- Add Course -->
             <div class="form-card">
-                <h3>
-                    <i class="fas fa-plus-circle"></i>
-                    إضافة كورس جديد
-                </h3>
+                <h3><i class="fas fa-plus-circle"></i> إضافة كورس جديد</h3>
                 <form action="/admin/add-course" method="POST">
                     <input type="text" name="title" class="form-control" placeholder="اسم الكورس" required>
                     <input type="text" name="vid" class="form-control" placeholder="ID فيديو يوتيوب" required>
                     <input type="text" name="thumb" class="form-control" placeholder="رابط صورة الغلاف" required>
-                    <button type="submit" class="btn-submit">
-                        <i class="fas fa-plus"></i> إضافة الكورس
-                    </button>
+                    <button type="submit" class="btn-submit"><i class="fas fa-plus"></i> إضافة الكورس</button>
                 </form>
             </div>
 
             <!-- Add Code -->
             <div class="form-card">
-                <h3>
-                    <i class="fas fa-key"></i>
-                    إضافة كود تفعيل
-                </h3>
+                <h3><i class="fas fa-key"></i> إضافة كود تفعيل</h3>
                 <form action="/admin/add-code" method="POST">
                     <input type="text" name="newCode" class="form-control" placeholder="أدخل الكود الجديد" required>
-                    <button type="submit" class="btn-submit">
-                        <i class="fas fa-plus"></i> إضافة الكود
-                    </button>
+                    <button type="submit" class="btn-submit"><i class="fas fa-plus"></i> إضافة الكود</button>
                 </form>
             </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="table-card">
+            <h3><i class="fas fa-users"></i> الطلاب المسجلين (<%= students.length %>)</h3>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الإيميل</th>
+                        <th>عدد الكورسات</th>
+                        <th>حذف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (students.length > 0) { %>
+                        <% students.forEach(s => { %>
+                        <tr>
+                            <td><%= s.username %></td>
+                            <td><%= s.email %></td>
+                            <td>
+                                <% 
+                                let enrolled = {};
+                                try { enrolled = JSON.parse(s.courses || '{}'); } catch(e) {}
+                                %>
+                                <span class="badge-custom <%= Object.keys(enrolled).length > 0 ? 'badge-active' : 'badge-inactive' %>">
+                                    <%= Object.keys(enrolled).length %> كورس
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/admin/delete-student/<%= s._id %>" class="btn-delete-small" onclick="return confirm('هل أنت متأكد من حذف هذا الطالب؟')">

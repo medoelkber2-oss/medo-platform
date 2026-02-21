@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - Dashboard</title>
+    <title>لوحة التحكم - مستر ميدو</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #6366f1; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
-        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; margin: 0; }
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; margin: 0; overflow-x: hidden; }
         .wrapper { display: flex; min-height: 100vh; }
         
         /* Sidebar */
-        .sidebar { width: 260px; background: #1e293b; border-left: 1px solid var(--border); padding: 30px 20px; position: fixed; height: 100vh; }
+        .sidebar { width: 260px; background: #1e293b; border-left: 1px solid var(--border); padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; }
         .sidebar h2 { font-weight: 900; color: var(--primary); text-align: center; margin-bottom: 40px; }
         .nav-link { color: #94a3b8; padding: 12px; border-radius: 10px; display: block; text-decoration: none; transition: 0.3s; margin-bottom: 5px; }
-        .nav-link:hover, .nav-link.active { background: var(--glass); color: white; }
+        .nav-link:hover { background: var(--glass); color: white; }
         
-        /* Main Content */
+        /* Content Area */
         .main-content { flex: 1; margin-right: 260px; padding: 40px; background: radial-gradient(circle at top right, #1e293b, #0f172a); }
         .card-custom { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 25px; backdrop-filter: blur(10px); margin-bottom: 30px; }
         
@@ -26,85 +26,106 @@
         .form-control:focus { background: rgba(0,0,0,0.3); color: white; border-color: var(--primary); box-shadow: none; }
         
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        .table-custom tr { background: rgba(255,255,255,0.02); }
-        .table-custom td { padding: 15px; vertical-align: middle; }
-        .btn-delete { color: #ef4444; border: 1px solid #ef4444; padding: 5px 15px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; }
+        .table-custom tr { background: rgba(255,255,255,0.02); transition: 0.3s; }
+        .table-custom tr:hover { background: rgba(255,255,255,0.05); }
+        .table-custom td { padding: 15px; vertical-align: middle; text-align: center; border: none; }
+        
+        .btn-delete { color: #ef4444; border: 1px solid #ef4444; padding: 5px 15px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
         .btn-delete:hover { background: #ef4444; color: white; }
+        
+        .stat-badge { background: var(--primary); padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
     <div class="wrapper">
         <div class="sidebar">
             <h2>مستر ميدو</h2>
-            <a href="#add" class="nav-link"><i class="fas fa-plus me-2"></i> إضافة كورس</a>
-            <a href="#list" class="nav-link"><i class="fas fa-video me-2"></i> الكورسات الحالية</a>
-            <a href="#students" class="nav-link"><i class="fas fa-users me-2"></i> الطلاب</a>
-            <a href="#codes" class="nav-link"><i class="fas fa-key me-2"></i> الأكواد</a>
-            <hr>
-            <a href="/logout" class="nav-link text-danger"><i class="fas fa-sign-out-alt me-2"></i> تسجيل الخروج</a>
+            <nav>
+                <a href="#add-course" class="nav-link"><i class="fas fa-plus-circle me-2"></i> إضافة كورس</a>
+                <a href="#courses-list" class="nav-link"><i class="fas fa-video me-2"></i> إدارة الكورسات</a>
+                <a href="#students-list" class="nav-link"><i class="fas fa-users me-2"></i> الطلاب</a>
+                <a href="#codes-list" class="nav-link"><i class="fas fa-key me-2"></i> الأكواد</a>
+                <hr style="opacity: 0.1;">
+                <a href="/logout" class="nav-link text-danger"><i class="fas fa-sign-out-alt me-2"></i> تسجيل الخروج</a>
+            </nav>
         </div>
 
         <div class="main-content">
-            <h1 class="mb-4">Dashboard | الإدارة ⚙️</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>لوحة التحكم الإدارية ⚙️</h1>
+                <div class="stat-badge">متصل الآن بالخادم</div>
+            </div>
 
-            <div class="card-custom" id="add">
-                <h3><i class="fas fa-folder-plus text-primary me-2"></i> إضافة كورس جديد</h3>
-                <form action="/admin/add-course" method="POST" class="row g-3 mt-2">
+            <div class="card-custom" id="add-course">
+                <h3 class="mb-4 text-primary"><i class="fas fa-upload me-2"></i> رفع كورس جديد</h3>
+                <form action="/admin/add-course" method="POST" class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">اسم الكورس</label>
-                        <input type="text" name="title" class="form-control" placeholder="مثلاً: مراجعة ليلة الامتحان" required>
+                        <label class="mb-2">اسم الكورس (العنوان)</label>
+                        <input type="text" name="title" class="form-control" placeholder="مثلاً: فيزياء الصف الثالث" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">كود فيديو اليوتيوب (ID)</label>
+                        <label class="mb-2">ID فيديو اليوتيوب</label>
                         <input type="text" name="vid" class="form-control" placeholder="مثال: dQw4w9WgXcQ" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">رابط صورة الغلاف</label>
-                        <input type="text" name="thumb" class="form-control" placeholder="https://link-to-image.jpg">
+                        <label class="mb-2">رابط صورة الغلاف</label>
+                        <input type="text" name="thumb" class="form-control" placeholder="رابط URL للصورة">
                     </div>
                     <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-primary px-5 shadow">نشر الكورس الآن</button>
+                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow">نشر الكورس الآن</button>
                     </div>
                 </form>
             </div>
 
-            <div class="card-custom" id="list">
-                <h3><i class="fas fa-play-circle text-success me-2"></i> الكورسات المنشورة (<%= courses.length %>)</h3>
-                <table class="table-custom mt-3 text-center">
-                    <thead>
-                        <tr class="text-secondary">
-                            <th>الغلاف</th>
-                            <th>اسم الكورس</th>
-                            <th>كود الفيديو</th>
-                            <th>التحكم</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% if (courses.length > 0) { %>
-                            <% courses.forEach(c => { %>
-                            <tr>
-                                <td><img src="<%= c.thumb %>" width="70" style="border-radius: 10px;"></td>
-                                <td><strong><%= c.title %></strong></td>
-                                <td><code><%= c.vid %></code></td>
-                                <td>
-                                    <a href="/admin/delete-course/<%= c.id %>" class="btn-delete" onclick="return confirm('حذف الكورس نهائياً؟')">
-                                        <i class="fas fa-trash-alt"></i> مسح
-                                    </a>
-                                </td>
+            <div class="card-custom" id="courses-list">
+                <h3 class="mb-4"><i class="fas fa-play-circle text-success me-2"></i> الكورسات المنشورة (<%= courses.length %>)</h3>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr class="text-secondary">
+                                <th>الغلاف</th>
+                                <th>اسم الكورس</th>
+                                <th>ID الفيديو</th>
+                                <th>الإجراءات</th>
                             </tr>
-                            <% }) %>
-                        <% } else { %>
-                            <tr><td colspan="4" class="py-5 text-secondary">لا توجد كورسات مضافة حالياً..</td></tr>
-                        <% } %>
+                        </thead>
+                        <tbody>
+                            <% if (courses.length > 0) { %>
+                                <% courses.forEach(c => { %>
+                                <tr>
+                                    <td><img src="<%= c.thumb %>" width="80" style="border-radius: 12px;"></td>
+                                    <td><strong><%= c.title %></strong></td>
+                                    <td><code><%= c.vid %></code></td>
+                                    <td>
+                                        <a href="/admin/delete-course/<%= c._id %>" class="btn-delete" onclick="return confirm('حذف الكورس نهائياً؟')">
+                                            <i class="fas fa-trash-alt"></i> حذف
+                                        </a>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr><td colspan="4" class="py-5 text-secondary">لا توجد كورسات مضافة حالياً.</td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-custom" id="students-list">
+                <h3 class="mb-4"><i class="fas fa-users text-info me-2"></i> الطلاب المسجلين</h3>
+                <table class="table-custom">
+                    <thead><tr class="text-secondary"><th>الاسم</th><th>البريد</th><th>الإجراء</th></tr></thead>
+                    <tbody>
+                        <% students.forEach(s => { %>
+                        <tr>
+                            <td><%= s.username %></td>
+                            <td><%= s.email %></td>
+                            <td><a href="/admin/delete-student/<%= s._id %>" class="btn-delete">إزالة الطالب</a></td>
+                        </tr>
+                        <% }) %>
                     </tbody>
                 </table>
             </div>
-
-            <div class="card-custom" id="students">
-                <h3><i class="fas fa-users me-2"></i> الطلاب</h3>
-                <p>عدد المسجلين: <%= students.length %></p>
-                <a href="#list" class="btn btn-sm btn-outline-light">عرض كل الطلاب في الأسفل...</a>
-             </div>
         </div>
     </div>
 </body>

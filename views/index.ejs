@@ -8,66 +8,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #6366f1; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; }
         .navbar { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); }
         .course-card { 
-            background: var(--glass); border-radius: 24px; overflow: hidden; 
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.4s; margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; margin-bottom: 30px;
         }
         .course-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.08); }
         .course-thumb { width: 100%; height: 200px; object-fit: cover; }
-        .course-body { padding: 25px; }
-        .btn-activate { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 15px; font-weight: bold; transition: 0.3s; }
-        .btn-activate:hover { background: #4f46e5; box-shadow: 0 0 20px rgba(99,102,241,0.4); }
-        .btn-watch { background: #10b981; color: white; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 15px; font-weight: bold; }
-        .status-badge { font-size: 0.85rem; padding: 6px 16px; border-radius: 50px; margin-bottom: 15px; display: inline-block; }
+        .course-body { padding: 20px; text-align: center; }
+        .btn-activate { background: #6366f1; border: none; width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; margin-top: 10px; color: white; }
+        .btn-watch { background: #10b981; color: white; text-decoration: none; display: block; padding: 12px; border-radius: 12px; font-weight: bold; }
+        .status-badge { font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark py-3">
+    <nav class="navbar navbar-dark py-3 sticky-top">
         <div class="container d-flex justify-content-between align-items-center">
             <a class="navbar-brand fw-bold fs-3" href="#">🎓 مستر ميدو</a>
-            <div class="user-info">
-                <span>أهلاً، <strong><%= username %></strong></span>
-                <a href="/logout" class="btn btn-sm btn-outline-danger ms-3">خروج</a>
+            <div class="d-flex align-items-center gap-3">
+                <span>مرحباً، <%= username %></span>
+                <a href="/logout" class="btn btn-sm btn-outline-danger">خروج</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-5">
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <h2 class="fw-black">مرحباً بك في كورساتك 📚</h2>
-        </div>
+        <h2 class="mb-5 fw-bold"><i class="fas fa-book-open me-2 text-primary"></i> الكورسات التعليمية المتاحة</h2>
 
-        <% if (typeof error !== 'undefined' && error) { %>
-            <div class="alert alert-danger rounded-4 border-0 shadow-sm"><i class="fas fa-exclamation-triangle me-2"></i> <%= error %></div>
+        <% if (error) { %>
+            <div class="alert alert-danger rounded-4 shadow-sm mb-4"><%= error %></div>
         <% } %>
 
         <div class="row">
-            <% if (courses && courses.length > 0) { %>
+            <% if (courses.length > 0) { %>
                 <% courses.forEach(course => { %>
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-md-4">
                         <div class="course-card">
-                            <img src="<%= course.thumb %>" class="course-thumb" alt="صورة الكورس">
-                            <div class="course-body text-center">
-                                <h4 class="mb-3 fw-bold"><%= course.title %></h4>
+                            <img src="<%= course.thumb %>" class="course-thumb" alt="thumbnail">
+                            <div class="course-body">
+                                <h4 class="mb-3"><%= course.title %></h4>
                                 
                                 <% if (enrolledList[course._id]) { %>
-                                    <div class="status-badge bg-success-subtle text-success border border-success-subtle">
-                                        <i class="fas fa-check-circle me-1"></i> الكورس مفعّل
-                                    </div>
-                                    <a href="/video/<%= course._id %>" class="btn-watch shadow-sm">
-                                        <i class="fas fa-play-circle me-2"></i> ابدأ المشاهدة
+                                    <div class="status-badge bg-success-subtle text-success border border-success">مفعل ✅</div>
+                                    <a href="/video/<%= course._id %>" class="btn-watch shadow">
+                                        <i class="fas fa-play me-2"></i> مشاهدة المحتوى
                                     </a>
                                 <% } else { %>
-                                    <div class="status-badge bg-danger-subtle text-danger border border-danger-subtle">
-                                        <i class="fas fa-lock me-1"></i> يحتاج كود تفعيل
-                                    </div>
+                                    <div class="status-badge bg-danger-subtle text-danger border border-danger">غير مفعل 🔒</div>
                                     <form action="/activate/<%= course._id %>" method="POST">
-                                        <input type="text" name="activationCode" class="form-control text-center bg-dark text-white border-secondary mb-3 py-2 rounded-3" placeholder="أدخل كودك هنا" required>
-                                        <button type="submit" class="btn-activate shadow">تفعيل الآن</button>
+                                        <input type="text" name="activationCode" class="form-control mb-2 text-center" placeholder="أدخل كود التفعيل" required>
+                                        <button type="submit" class="btn-activate shadow">تفعيل الكورس</button>
                                     </form>
                                 <% } %>
                             </div>
@@ -76,10 +67,7 @@
                 <% }) %>
             <% } else { %>
                 <div class="col-12 text-center py-5">
-                    <div class="opacity-50">
-                        <i class="fas fa-video-slash fa-4x mb-3"></i>
-                        <h3>لا توجد كورسات منشورة حالياً</h3>
-                    </div>
+                    <p class="text-secondary fs-4">لا توجد كورسات مضافة حالياً..</p>
                 </div>
             <% } %>
         </div>

@@ -15,7 +15,7 @@ mongoose.connect(mongoURI)
     .then(() => console.log("✅ Database Connected"))
     .catch(err => console.error("❌ DB Error:", err));
 
-// User Model - تخزين بسيط
+// Models
 const UserSchema = new mongoose.Schema({
     username: String,
     email: { type: String, unique: true },
@@ -34,20 +34,21 @@ const Code = mongoose.model('Code', CodeSchema);
 
 // Session
 app.use(session({
-    secret: 'medo-secret-key',
+    secret: 'medo-platform-2026',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
 // Courses
 const courses = [
     { id: "c1", title: "مراجعة الفيزياء - 1 ثانوي", vid: "dQw4w9WgXcQ", thumb: "https://images.unsplash.com/photo-1636466484362-d26e79aa59d6?w=500" },
     { id: "c2", title: "كيمياء اللغات - 2 ثانوي", vid: "9Wp3-6n-8f0", thumb: "https://images.unsplash.com/photo-1532187875605-2fe358711e24?w=500" }
-]);
+];
 
 // Helper
-function getCourses(user) {
-    try { return JSON.parse(user.courses || '{}'); }
+function getCourses(str) {
+    try { return JSON.parse(str || '{}'); }
     catch { return {}; }
 }
 
@@ -65,9 +66,9 @@ app.get('/signup', (req, res) => {
 app.post('/signup', async (req, res) => {
     try {
         await User.create(req.body);
-        res.render('login', { error: null, success: "✅ تم إنشاء الحساب!" });
+        res.render('login', { error: null, success: "✅ تم إنشاء الحساب بنجاح!" });
     } catch (e) {
-        res.render('signup', { error: "الإيميل مسجل!", success: null });
+        res.render('signup', { error: "الإيميل مسجل مسبقاً!", success: null });
     }
 });
 
@@ -76,14 +77,15 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({ email, password });
     
     if (user) {
-        req.session.userId = user._id;
+        req.session.userId = user._id.toString();
+        
         if (email === 'admin@medo.com') {
             req.session.isAdmin = true;
             return res.redirect('/admin');
         }
         res.redirect('/home');
     } else {
-        res.render('login', { error: "بيانات خاطئة", success: null });
+        res.render('login', { error: "بيانات الدخول خاطئة", success: null });
     }
 });
 
@@ -91,14 +93,18 @@ app.get('/home', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     
     const user = await User.findById(req.session.userId);
-    if (!user) return res.redirect('/login');
+    if (!user) {
+        req.session.destroy();
+        return res.redirect('/login');
+    }
     
-    const enrolled = getCourses(user);
+    const enrolled = getCourses(user.courses);
     
     res.render('index', {
-        courses,
+        courses: courses,
         enrolledList: enrolled,
         username: user.username,
+        sessionId: req.sessionID,
         error: null,
         success: null
     });
@@ -111,7 +117,22 @@ app.post('/activate/:courseId', async (req, res) => {
     const codeDoc = await Code.findOne({ code: activationCode, course_id: req.params.courseId, used: false });
     const user = await User.findById(req.session.userId);
     
-    let enrolled = getCourses(user);
+    if (!user) return res.redirect('/login');
+    
+    let enrolled = getCourses(user.courses);
+    const courseData = enrolled[req.params.courseId];
+    
+    // فحص إذا كان مرتبط بجهاز آخر
+    if (courseData && courseData.device && courseData.device !== req.sessionID) {
+        return res.render('index', {
+            courses: courses,
+            enrolledList: enrolled,
+            username: user.username,
+            sessionId: req.sessionID,
+            error: "❌ هذا الكورس مرتبط بجهاز آخر!",
+            success: null
+        });
+    }
     
     if (codeDoc) {
         enrolled[req.params.courseId] = { views: 0, max: 3, device: req.sessionID };
@@ -121,18 +142,20 @@ app.post('/activate/:courseId', async (req, res) => {
         await codeDoc.save();
         
         res.render('index', {
-            courses,
+            courses: courses,
             enrolledList: enrolled,
             username: user.username,
+            sessionId: req.sessionID,
             error: null,
             success: "✅ تم التفعيل! 3 مشاهدات"
         });
     } else {
         res.render('index', {
-            courses,
+            courses: courses,
             enrolledList: enrolled,
             username: user.username,
-            error: "❌ كود خطأ",
+            sessionId: req.sessionID,
+            error: "❌ الكود خاطئ أو مستخدم",
             success: null
         });
     }
@@ -152,7 +175,6 @@ app.post('/admin/add-code', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
     await Code.create({ code: req.body.newCode, course_id: req.body.courseId });
-    
     res.redirect('/admin');
 });
 
@@ -168,4 +190,4 @@ app.get('/logout', (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server on ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server running on port ${PORT}`));

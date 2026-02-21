@@ -28,7 +28,6 @@
 </nav>
 
 <div class="container">
-    <!-- رسائل النجاح والخطأ -->
     <% if (success) { %>
     <div class="alert alert-success text-center"><%= success %></div>
     <% } %>
@@ -38,68 +37,47 @@
 
     <h3 class="fw-bold mb-4">📚 كورساتي المتاحة</h3>
     <div class="row g-4">
-        <% if (courses.length > 0) { %>
-            <% courses.forEach(course => { %>
-                <div class="col-md-4">
-                    <div class="card course-card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="fw-bold mb-3"><%= course.title %></h5>
+        <% courses.forEach(course => { %>
+            <div class="col-md-4">
+                <div class="card course-card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3"><%= course.title %></h5>
+                        
+                        <% 
+                        const courseData = enrolledList[course.id];
+                        const isEnrolled = courseData && courseData.views !== undefined;
+                        const isSameDevice = !courseData || courseData.device === sessionId;
+                        const remaining = isEnrolled ? (courseData.max - courseData.views) : 0;
+                        %>
+                        
+                        <% if (isEnrolled && isSameDevice && remaining > 0) { %>
+                            <!-- مفعل + نفس الجهاز + فيه مشاهدات -->
+                            <div class="video-container shadow-sm">
+                                <iframe src="https://www.youtube.com/embed/<%= course.vid %>" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <p class="text-info mt-2 text-center fw-bold">
+                                📺 بقي <%= remaining %> مشاهدات من <%= courseData.max %>
+                            </p>
                             
-                            <% 
-                            const courseData = enrolledList[course.id];
-                            const isEnrolled = courseData && courseData.activated;
-                            const isSameDevice = courseData && courseData.device_id === deviceId;
-                            const remainingViews = isEnrolled ? (courseData.max_views - courseData.views) : 0;
-                            %>
+                        <% } else if (isEnrolled && isSameDevice && remaining <= 0) { %>
+                            <!-- نفس الجهاز لكن خلصت المشاهدات -->
+                            <div class="alert alert-warning text-center">
+                                ⚠️ انتهت المشاهدات! يرجى تفعيل بكود جديد
+                            </div>
+                            <form action="/activate/<%= course.id %>" method="POST">
+                                <div class="input-group mb-2">
+                                    <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill">تفعيل الكورس</button>
+                            </form>
                             
-                            <% if (isEnrolled && isSameDevice && remainingViews > 0) { %>
-                                <!-- الكورس مفعل + نفس الجهاز + فيه مشاهدات -->
-                                <div class="video-container shadow-sm">
-                                    <iframe src="https://www.youtube.com/embed/<%= course.vid %>" frameborder="0" allowfullscreen></iframe>
+                        <% } else if (isEnrolled && !isSameDevice) { %>
+                            <!-- مرتبط بجهاز تاني -->
+                            <div class="alert alert-danger text-center">
+                                🔒 هذا الكورس مرتبط بجهاز آخر!<br>يرجى التفعيل من جهازك
+                            </div>
+                            <form action="/activate/<%= course.id %>" method="POST">
+                                <div class="input-group mb-2">
+                                    <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
                                 </div>
-                                <p class="text-info mt-2 text-center fw-bold">
-                                    📺剩余 <%= remainingViews %> مشاهدات من <%= courseData.max_views %>
-                                </p>
-                                
-                            <% } else if (isEnrolled && isSameDevice && remainingViews <= 0) { %>
-                                <!-- نفس الجهاز لكن خلصت المشاهدات -->
-                                <div class="alert alert-warning text-center">
-                                    ⚠️ انتهت المشاهدات! يرجى تفعيل الكورس بكود جديد
-                                </div>
-                                <form action="/activate/<%= course.id %>" method="POST">
-                                    <div class="input-group mb-2">
-                                        <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 rounded-pill">تفعيل الكورس</button>
-                                </form>
-                                
-                            <% } else if (isEnrolled && !isSameDevice) { %>
-                                <!-- الكورس مرتبط بجهاز تاني -->
-                                <div class="alert alert-danger text-center">
-                                    🔒 هذا الكورس مرتبط بجهاز آخر!<br>
-                                    يرجى التفعيل من جهازك الأصلي
-                                </div>
-                                <form action="/activate/<%= course.id %>" method="POST">
-                                    <div class="input-group mb-2">
-                                        <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 rounded-pill">تفعيل على جهازي</button>
-                                </form>
-                                
-                            <% } else { %>
-                                <!-- الكورس غير مفعل -->
-                                <img src="<%= course.thumb %>" class="img-fluid rounded mb-3" style="height: 180px; width: 100%; object-fit: cover; opacity: 0.8;">
-                                <form action="/activate/<%= course.id %>" method="POST">
-                                    <div class="input-group mb-2">
-                                        <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 rounded-pill">تفعيل الكورس</button>
-                                </form>
-                            <% } %>
-                            
-                        </div>
-                    </div>
-                </div>
-            <% }) %>
-        <% } else { %>
-            <div
+                                <button type="submit" class="btn btn-primary w-100

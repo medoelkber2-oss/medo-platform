@@ -106,6 +106,40 @@ app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login')
 
 // ================= لوحة التحكم (Admin Routes) =================
 
+// جلب بيانات محاضرة معينة للتعديل (API)
+app.get('/admin/lecture-data/:courseId/:lecIndex', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).json({ error: 'Unauthorized' });
+    const course = await Course.findById(req.params.courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found' });
+    res.json(course.lectures[req.params.lecIndex]);
+});
+
+// تنفيذ تعديل المحاضرة
+app.post('/admin/edit-lecture/:courseId/:lecIndex', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    const { title, vid } = req.body;
+    const { courseId, lecIndex } = req.params;
+    
+    const course = await Course.findById(courseId);
+    if (course) {
+        course.lectures[lecIndex] = { title, vid };
+        await course.save();
+    }
+    res.redirect('/admin');
+});
+
+// مسار لحذف محاضرة معينة
+app.get('/admin/delete-lecture/:courseId/:lecIndex', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    const { courseId, lecIndex } = req.params;
+    const course = await Course.findById(courseId);
+    if (course) {
+        course.lectures.splice(lecIndex, 1); // حذف المحاضرة من المصفوفة
+        await course.save();
+    }
+    res.redirect('/admin');
+});
+
 app.get('/admin', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const students = await User.find({});
@@ -163,3 +197,4 @@ app.get('/admin/delete-all-codes', async (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+

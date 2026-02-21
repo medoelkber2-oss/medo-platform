@@ -1,42 +1,101 @@
-
----
-
-## ✅ login.ejs (بسيط):
-
-```html
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
+    <title>تسجيل الدخول - مستر ميدو</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-box {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 25px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .login-box h2 {
+            color: white;
+            text-align: center;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .login-box .subtitle {
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        .form-control {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .form-control:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: #e94560;
+            box-shadow: 0 0 20px rgba(233,69,96,0.3);
+            color: white;
+        }
+        .form-control::placeholder { color: rgba(255,255,255,0.4); }
+        .form-control:focus { outline: none; }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #e94560, #0f3460);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            width: 100%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-login:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(233,69,96,0.4); }
+        
+        .alert { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 600; }
+        .alert-success { background: rgba(0,200,100,0.2); border: 1px solid #00c864; color: #00c864; }
+        .alert-danger { background: rgba(233,69,96,0.2); border: 1px solid #e94560; color: #e94560; }
+        
+        .links { text-align: center; margin-top: 25px; color: rgba(255,255,255,0.6); }
+        .links a { color: #e94560; text-decoration: none; font-weight: 700; }
+        .links a:hover { text-decoration: underline; }
+    </style>
 </head>
-<body style="background:#f0f2f5;display:flex;align-items:center;justify-content:center;height:100vh">
-    <div class="card p-4" style="width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.1);border-radius:20px">
-        <h3 class="text-center text-primary mb-4">منصة مستر ميدو</h3>
+<body>
+    <div class="login-box">
+        <h2>🎓 مستر ميدو</h2>
+        <p class="subtitle">منصة التعليمية</p>
         
         <% if (success) { %>
         <div class="alert alert-success"><%= success %></div>
         <% } %>
-        
         <% if (error) { %>
         <div class="alert alert-danger"><%= error %></div>
         <% } %>
         
         <form action="/login" method="POST">
-            <div class="mb-3">
-                <label>البريد الإلكتروني</label>
-                <input type="email" name="email" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label>كلمة السر</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">دخول</button>
+            <input type="email" name="email" class="form-control" placeholder="البريد الإلكتروني" required>
+            <input type="password" name="password" class="form-control" placeholder="كلمة المرور" required>
+            <button type="submit" class="btn-login">🚀 دخول</button>
         </form>
         
-        <p class="text-center mt-3">ليس لديك حساب؟ <a href="/signup">سجل الآن</a></p>
+        <p class="links">ليس لديك حساب؟ <a href="/signup">سجل الآن</a></p>
     </div>
 </body>
 </html>

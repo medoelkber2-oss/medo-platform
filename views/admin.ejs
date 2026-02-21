@@ -18,6 +18,14 @@
             <a href="/logout" class="btn btn-danger btn-sm">تسجيل خروج</a>
         </div>
 
+        <!-- رسائل النجاح والخطأ -->
+        <% if (success) { %>
+        <div class="alert alert-success text-center"><%= success %></div>
+        <% } %>
+        <% if (error) { %>
+        <div class="alert alert-danger text-center"><%= error %></div>
+        <% } %>
+
         <div class="row">
             <div class="col-md-7">
                 <div class="card p-3 mb-4 shadow-sm border-primary">
@@ -36,6 +44,7 @@
                     <h5 class="fw-bold">توليد كود تفعيل 🔑</h5>
                     <form action="/admin/add-code" method="POST" class="d-flex gap-2">
                         <input type="text" name="newCode" class="form-control" placeholder="اكتب الكود الجديد هنا" required>
+                        <input type="text" name="courseId" class="form-control" placeholder="معرف الكورس (c1, c2)" required>
                         <button type="submit" class="btn btn-warning">حفظ الكود</button>
                     </form>
                 </div>
@@ -80,8 +89,8 @@
         <h5 class="fw-bold mt-5">الأكواد المتوفرة في القاعدة 🔑</h5>
         <div class="d-flex flex-wrap gap-2">
             <% codes.forEach(c => { %>
-                <span class="badge <%= c.isUsed ? 'bg-secondary text-decoration-line-through' : 'bg-info' %> p-2">
-                    <%= c.codeText %>
+                <span class="badge <%= c.is_used ? 'bg-secondary text-decoration-line-through' : 'bg-info' %> p-2">
+                    <%= c.code %>
                 </span>
             <% }) %>
         </div>

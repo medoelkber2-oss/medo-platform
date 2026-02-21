@@ -86,39 +86,6 @@
                 <form id="editForm" method="POST">
                     <div class="modal-header border-secondary"><h5>تعديل بيانات الكورس</h5></div>
                     <div class="modal-body">
-// جلب بيانات محاضرة معينة للتعديل (API)
-app.get('/admin/lecture-data/:courseId/:lecIndex', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).json({ error: 'Unauthorized' });
-    const course = await Course.findById(req.params.courseId);
-    if (!course) return res.status(404).json({ error: 'Course not found' });
-    res.json(course.lectures[req.params.lecIndex]);
-});
-
-// تنفيذ تعديل المحاضرة
-app.post('/admin/edit-lecture/:courseId/:lecIndex', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    const { title, vid } = req.body;
-    const { courseId, lecIndex } = req.params;
-    
-    const course = await Course.findById(courseId);
-    if (course) {
-        course.lectures[lecIndex] = { title, vid };
-        await course.save();
-    }
-    res.redirect('/admin');
-});
-
-// مسار لحذف محاضرة معينة
-app.get('/admin/delete-lecture/:courseId/:lecIndex', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    const { courseId, lecIndex } = req.params;
-    const course = await Course.findById(courseId);
-    if (course) {
-        course.lectures.splice(lecIndex, 1); // حذف المحاضرة من المصفوفة
-        await course.save();
-    }
-    res.redirect('/admin');
-});
                         <label>عنوان الكورس</label>
                         <input type="text" name="title" id="editTitle" class="form-control mb-2 bg-dark text-white border-secondary" required>
                         <label>رابط الغلاف</label>

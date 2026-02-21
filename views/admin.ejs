@@ -26,32 +26,55 @@
         <% } %>
 
         <div class="row">
-            <div class="col-md-7">
+            <!-- إضافة كورس جديد -->
+            <div class="col-md-6">
                 <div class="card p-3 mb-4 shadow-sm border-primary">
                     <h5 class="fw-bold">إضافة كورس جديد 🎥</h5>
-                    <form action="/admin/add-course" method="POST" class="row g-2">
-                        <div class="col-md-6"><input type="text" name="title" class="form-control" placeholder="اسم الكورس" required></div>
-                        <div class="col-md-6"><input type="text" name="vid" class="form-control" placeholder="ID يوتيوب (مثال: dQw4w9W)" required></div>
-                        <div class="col-md-10"><input type="text" name="thumb" class="form-control" placeholder="رابط صورة الغلاف" required></div>
-                        <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">إضافة</button></div>
+                    <form action="/admin/add-course" method="POST">
+                        <div class="mb-2">
+                            <input type="text" name="title" class="form-control" placeholder="اسم الكورس" required>
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" name="vid" class="form-control" placeholder="ID يوتيوب (مثال: dQw4w9W)" required>
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" name="thumb" class="form-control" placeholder="رابط صورة الغلاف" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">إضافة الكورس</button>
                     </form>
                 </div>
             </div>
 
-            <div class="col-md-5">
+            <!-- إضافة كود تفعيل -->
+            <div class="col-md-6">
                 <div class="card p-3 mb-4 shadow-sm border-warning">
-                    <h5 class="fw-bold">توليد كود تفعيل 🔑</h5>
-                    <form action="/admin/add-code" method="POST" class="d-flex gap-2">
-                        <input type="text" name="newCode" class="form-control" placeholder="اكتب الكود" required>
-                        <input type="text" name="courseId" class="form-control" placeholder="معرف الكورس" required>
-                        <button type="submit" class="btn btn-warning">حفظ</button>
+                    <h5 class="fw-bold">إضافة كود تفعيل 🔑</h5>
+                    <form action="/admin/add-code" method="POST">
+                        <div class="mb-2">
+                            <input type="text" name="newCode" class="form-control" placeholder="الكود (مثال: ABC123)" required>
+                        </div>
+                        <div class="mb-2">
+                            <select name="courseId" class="form-control" required>
+                                <option value="">اختر الكورس</option>
+                                <% courses.forEach(c => { %>
+                                    <option value="<%= c.id %>"><%= c.title %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">إضافة الكود</button>
                     </form>
+                    
+                    <hr>
+                    <a href="/admin/generate-keys" class="btn btn-outline-secondary btn-sm w-100">
+                        🎲 توليد 20 كود عشوائي
+                    </a>
                 </div>
             </div>
         </div>
 
         <hr>
 
+        <!-- إدارة الطلاب -->
         <h5 class="fw-bold mt-4">إدارة الطلاب 👥</h5>
         <div class="table-responsive">
             <table class="table table-hover align-middle mt-3">
@@ -71,7 +94,7 @@
                         <td>
                             <% 
                             let enrolled = {};
-                            try { enrolled = JSON.parse(s.enrolled_courses || '{}'); } catch(e) {}
+                            try { enrolled = JSON.parse(s.courses || '{}'); } catch(e) {}
                             %>
                             <span class="badge <%= Object.keys(enrolled).length > 0 ? 'bg-success' : 'bg-secondary' %>">
                                 <%= Object.keys(enrolled).length %> كورس
@@ -86,11 +109,12 @@
             </table>
         </div>
 
-        <h5 class="fw-bold mt-5">الأكواد 🔑</h5>
+        <!-- الأكواد -->
+        <h5 class="fw-bold mt-5">الأكواد المتوفرة 🔑</h5>
         <div class="d-flex flex-wrap gap-2">
             <% codes.forEach(c => { %>
-                <span class="badge <%= c.is_used ? 'bg-secondary text-decoration-line-through' : 'bg-info' %> p-2">
-                    <%= c.code %> (<%= c.course_id %>)
+                <span class="badge <%= c.used ? 'bg-secondary text-decoration-line-through' : 'bg-info' %> p-2">
+                    <%= c.code %> - <%= c.course_id %>
                 </span>
             <% }) %>
         </div>

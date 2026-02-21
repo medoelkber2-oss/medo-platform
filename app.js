@@ -39,7 +39,10 @@ app.use(session({
 }));
 
 // Courses
-let courses = [];
+let courses = [
+    { id: "c1", title: "مراجعة الفيزياء - 1 ثانوي", vid: "dQw4w9WgXcQ", thumb: "https://images.unsplash.com/photo-1636466484362-d26e79aa59d6?w=500" },
+    { id: "c2", title: "كيمياء اللغات - 2 ثانوي", vid: "9Wp3-6n-8f0", thumb: "https://images.unsplash.com/photo-1532187875605-2fe358711e24?w=500" }
+];
 
 function parseCourses(str) {
     try { return JSON.parse(str || '{}'); }
@@ -50,6 +53,7 @@ function parseCourses(str) {
 
 app.get('/', (req, res) => res.redirect('/login'));
 
+// Login
 app.get('/login', (req, res) => {
     res.render('login', { error: '', success: '' });
 });
@@ -71,6 +75,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Signup
 app.get('/signup', (req, res) => {
     res.render('signup', { error: '', success: '' });
 });
@@ -84,6 +89,7 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// Home
 app.get('/home', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     
@@ -100,6 +106,7 @@ app.get('/home', async (req, res) => {
     });
 });
 
+// Activate
 app.post('/activate/:courseId', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     
@@ -135,6 +142,7 @@ app.post('/activate/:courseId', async (req, res) => {
     }
 });
 
+// Admin
 app.get('/admin', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
@@ -163,21 +171,6 @@ app.post('/admin/add-course', async (req, res) => {
         courses: courses,
         error: '',
         success: '✅ تم إضافة الكورس!'
-    });
-});
-
-// ✅ حذف كورس
-app.get('/admin/delete-course/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    
-    courses = courses.filter(c => c.id !== req.params.id);
-    
-    res.render('admin', {
-        students: await User.find({}),
-        codes: await Code.find({}),
-        courses: courses,
-        error: '',
-        success: '✅ تم حذف الكورس!'
     });
 });
 

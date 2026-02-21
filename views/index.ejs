@@ -5,369 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصتي - مستر ميدو</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --glass: rgba(255, 255, 255, 0.08);
-            --border: rgba(255, 255, 255, 0.1);
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; }
+        .navbar { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .course-card { 
+            background: rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; margin-bottom: 30px;
         }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-            min-height: 100vh;
-        }
-        
-        /* Navbar */
-        .navbar {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
-            border-bottom: 1px solid var(--border);
-            padding: 20px 0;
-            backdrop-filter: blur(20px);
-        }
-        
-        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
-        
-        .navbar h3 {
-            color: white;
-            font-weight: 900;
-            font-size: 1.5rem;
-        }
-        
-        .navbar h3 span {
-            background: linear-gradient(135deg, #6366f1, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .user-info span {
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 600;
-        }
-        
-        .btn-logout {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border: none;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-logout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
-        }
-        
-        /* Container */
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        
-        /* Alert */
-        .alert-custom {
-            padding: 18px 25px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideIn 0.4s ease;
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
-            border: 1px solid #10b981;
-            color: #10b981;
-        }
-        
-        .alert-danger {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
-            border: 1px solid #ef4444;
-            color: #ef4444;
-        }
-        
-        /* Title */
-        .section-title {
-            color: white;
-            font-weight: 900;
-            font-size: 1.8rem;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .section-title::before {
-            content: '';
-            width: 6px;
-            height: 40px;
-            background: linear-gradient(135deg, #6366f1, #ec4899);
-            border-radius: 3px;
-        }
-        
-        /* Course Card */
-        .course-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            overflow: hidden;
-            height: 100%;
-            transition: all 0.3s ease;
-        }
-        
-        .course-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-        
-        .course-card .card-header {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .course-card .card-header h5 {
-            color: white;
-            font-weight: 800;
-            margin: 0;
-            font-size: 1.2rem;
-        }
-        
-        .course-card .card-body {
-            padding: 25px;
-        }
-        
-        /* Thumb */
-        .course-thumb {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
-        
-        /* Video */
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        
-        /* Status */
-        .status-badge {
-            padding: 12px 20px;
-            border-radius: 14px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-align: center;
-            display: block;
-        }
-        
-        .status-active {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
-            border: 1px solid #10b981;
-            color: #10b981;
-        }
-        
-        .status-ended {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
-            border: 1px solid #ef4444;
-            color: #ef4444;
-        }
-        
-        .status-locked {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            color: rgba(255, 255, 255, 0.6);
-        }
-        
-        .views-count {
-            text-align: center;
-            color: #10b981;
-            font-weight: 700;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-        
-        /* Form */
-        .form-control {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid var(--border);
-            color: white;
-            padding: 14px 18px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            font-family: 'Cairo', sans-serif;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #6366f1;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-            color: white;
-            outline: none;
-        }
-        
-        .form-control::placeholder { color: rgba(255, 255, 255, 0.4); }
-        
-        .btn-activate {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border: none;
-            color: white;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 700;
-            width: 100%;
-            cursor: pointer;
-            font-family: 'Cairo', sans-serif;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-activate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
-        }
+        .course-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.08); }
+        .course-thumb { width: 100%; height: 180px; object-fit: cover; }
+        .course-body { padding: 20px; }
+        .btn-activate { background: #6366f1; border: none; width: 100%; padding: 10px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+        .btn-watch { background: #10b981; color: white; text-decoration: none; display: block; text-align: center; padding: 10px; border-radius: 12px; font-weight: bold; }
+        .status-badge { font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-            <h3>🎓 مستر <span>ميدو</span></h3>
-            <div class="user-info">
-                <span>أهلاً، <strong><%= username %></strong></span>
-                <a href="/logout" class="btn-logout"><i class="fas fa-sign-out-alt"></i> خروج</a>
-            </div>
+    <nav class="navbar navbar-dark py-3">
+        <div class="container d-flex justify-content-between">
+            <a class="navbar-brand fw-bold" href="#">🎓 مستر ميدو</a>
+            <div class="text-white-50">أهلاً، <%= username %> | <a href="/logout" class="text-danger text-decoration-none">خروج</a></div>
         </div>
     </nav>
 
-    <div class="container">
-        <!-- Alerts -->
-        <% if (success) { %>
-        <div class="alert-custom alert-success">
-            <i class="fas fa-check-circle"></i>
-            <%= success %>
-        </div>
-        <% } %>
-        
+    <div class="container mt-5">
+        <h2 class="mb-4">الكورسات المتاحة لك 📚</h2>
+
         <% if (error) { %>
-        <div class="alert-custom alert-danger">
-            <i class="fas fa-exclamation-circle"></i>
-            <%= error %>
-        </div>
+            <div class="alert alert-danger rounded-4"><%= error %></div>
         <% } %>
 
-        <!-- Title -->
-        <h2 class="section-title">الكورسات المتاحة</h2>
-        
-        <!-- Courses -->
         <div class="row">
-            <% courses.forEach(course => { %>
-                <div class="col-md-4 mb-4">
-                    <div class="course-card">
-                        <div class="card-header">
-                            <h5><%= course.title %></h5>
-                        </div>
-                        <div class="card-body">
-                            <% 
-                            const data = enrolledList[course.id];
-                            const isEnrolled = data && data.views !== undefined;
-                            const sameDevice = !data || data.device === sessionId;
-                            const remaining = isEnrolled ? (data.max - data.views) : 0;
-                            %>
-                            
-                            <% if (isEnrolled && sameDevice && remaining > 0) { %>
-                                <!-- مفعل ويوجد مشاهدات -->
-                                <div class="video-wrapper">
-                                    <iframe src="https://www.youtube.com/embed/<%= course.vid %>" allowfullscreen></iframe>
-                                </div>
-                                <div class="status-badge status-active">
-                                    <i class="fas fa-play-circle"></i> مشغل
-                                </div>
-                                <div class="views-count">
-                                    📺 بقي <%= remaining %> مشاهدات
-                                </div>
+            <% if (courses.length > 0) { %>
+                <% courses.forEach(course => { %>
+                    <div class="col-md-4">
+                        <div class="course-card">
+                            <img src="<%= course.thumb %>" class="course-thumb" alt="thumbnail">
+                            <div class="course-body">
+                                <h5><%= course.title %></h5>
                                 
-                            <% } else if (isEnrolled && sameDevice && remaining <= 0) { %>
-                                <!-- نفس الجهاز لكن انتهت المشاهدات -->
-                                <img src="<%= course.thumb %>" class="course-thumb" alt="<%= course.title %>">
-                                <div class="status-badge status-ended">
-                                    <i class="fas fa-exclamation-triangle"></i> انتهت المشاهدات
-                                </div>
-                                <form action="/activate/<%= course.id %>" method="POST">
-                                    <input type="text" name="activationCode" class="form-control" placeholder="أدخل كود التفعيل" required>
-                                    <button type="submit" class="btn-activate">
-                                        <i class="fas fa-key"></i> تفعيل بكود جديد
-                                    </button>
-                                </form>
-                                
-                            <% } else if (isEnrolled && !sameDevice) { %>
-                                <!-- مرتبط بجهاز آخر -->
-                                <img src="<%= course.thumb %>" class="course-thumb" alt="<%= course.title %>">
-                                <div class="status-badge status-locked">
-                                    <i class="fas fa-lock"></i> مرتبط بجهاز آخر
-                                </div>
-                                <form action="/activate/<%= course.id %>" method="POST">
-                                    <input type="text" name="activationCode" class="form-control" placeholder="أدخل كود التفعيل" required>
-                                    <button type="submit" class="btn-activate">
-                                        <i class="fas fa-unlock"></i> تفعيل على جهازي
-                                    </button>
-                                </form>
-                                
-                            <% } else { %>
-                                <!-- غير مفعل -->
-                                <img src="<%= course.thumb %>" class="course-thumb" alt="<%= course.title %>">
-                                <div class="status-badge status-locked">
-                                    <i class="fas fa-lock"></i> مقفل
-                                </div>
-                                <form action="/activate/<%= course.id %>" method="POST">
-                                    <input type="text" name="activationCode" class="form-control" placeholder="أدخل كود التفعيل" required>
-                                    <button type="submit" class="btn-activate">
-                                        <i class="fas fa-key"></i> تفعيل الكورس
-                                    </button>
-                                </form>
-                            <% } %>
+                                <% if (enrolledList[course._id]) { %>
+                                    <div class="status-badge bg-success-subtle text-success">تم التفعيل ✅</div>
+                                    <a href="/video/<%= course._id %>" class="btn-watch">
+                                        <i class="fas fa-play me-2"></i> مشاهدة المحتوى
+                                    </a>
+                                <% } else { %>
+                                    <div class="status-badge bg-danger-subtle text-danger">غير مفعل 🔒</div>
+                                    <form action="/activate/<%= course._id %>" method="POST">
+                                        <input type="text" name="activationCode" class="form-control mb-2" placeholder="أدخل كود التفعيل" required>
+                                        <button type="submit" class="btn btn-activate">تفعيل الكورس</button>
+                                    </form>
+                                <% } %>
+                            </div>
                         </div>
                     </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-12 text-center py-5">
+                    <p class="text-white-50">لا توجد كورسات متاحة حالياً، ترقبوا قريباً!</p>
                 </div>
-            <% }) %>
+            <% } %>
         </div>
     </div>
 </body>

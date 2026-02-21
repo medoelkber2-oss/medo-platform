@@ -3,118 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - Dashboard</title>
+    <title>لوحة التحكم - مستر ميدو</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #6366f1; --sidebar-bg: #1e293b; --main-bg: #0f172a; --border: rgba(255, 255, 255, 0.1); }
-        body { font-family: 'Cairo', sans-serif; background: var(--main-bg); color: white; margin: 0; }
-        .wrapper { display: flex; min-height: 100vh; }
-        
-        /* Sidebar */
-        .sidebar { width: 280px; background: var(--sidebar-bg); border-left: 1px solid var(--border); padding: 30px 20px; position: fixed; height: 100vh; z-index: 100; }
-        .sidebar-brand { font-size: 1.8rem; font-weight: 900; color: var(--primary); margin-bottom: 50px; display: block; text-align: center; text-decoration: none; }
-        .nav-link { color: #94a3b8; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 12px; text-decoration: none; transition: 0.3s; margin-bottom: 8px; }
-        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.05); color: white; }
-        
-        /* Main */
-        .main-content { flex: 1; margin-right: 280px; padding: 50px; background: radial-gradient(circle at 10% 10%, #1e293b 0%, #0f172a 100%); }
-        .card-custom { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 25px; padding: 30px; backdrop-filter: blur(10px); margin-bottom: 35px; }
-        
-        /* Forms & Tables */
-        .form-control { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; border-radius: 12px; padding: 14px; }
-        .form-control:focus { background: rgba(0,0,0,0.4); color: white; border-color: var(--primary); box-shadow: none; }
-        .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        .table-custom tr { background: rgba(255,255,255,0.02); transition: 0.3s; border-radius: 15px; }
-        .table-custom td { padding: 20px; vertical-align: middle; text-align: center; }
-        .btn-delete-course { color: #ef4444; border: 1px solid #ef4444; padding: 8px 18px; border-radius: 10px; text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
-        .btn-delete-course:hover { background: #ef4444; color: white; }
-        
-        .badge-pill { background: var(--primary); padding: 6px 15px; border-radius: 50px; font-size: 0.8rem; }
+        :root { --primary: #6366f1; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; margin: 0; }
+        .sidebar { width: 280px; background: #1e293b; border-left: 1px solid var(--border); padding: 30px 20px; position: fixed; height: 100vh; }
+        .main-content { margin-right: 280px; padding: 40px; background: radial-gradient(circle at top right, #1e293b, #0f172a); min-height: 100vh; }
+        .card-custom { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 25px; backdrop-filter: blur(10px); margin-bottom: 30px; }
+        .form-control { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; border-radius: 10px; padding: 12px; }
+        .table-custom { width: 100%; color: white; border-collapse: separate; border-spacing: 0 10px; }
+        .table-custom tr { background: rgba(255,255,255,0.02); }
+        .table-custom td, .table-custom th { padding: 15px; vertical-align: middle; text-align: center; border: none; }
+        .btn-delete { color: #ef4444; border: 1px solid #ef4444; padding: 5px 15px; border-radius: 8px; text-decoration: none; transition: 0.3s; }
+        .btn-delete:hover { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <div class="sidebar">
-            <a href="#" class="sidebar-brand">لوحة التحكم</a>
-            <nav>
-                <a href="#add" class="nav-link active"><i class="fas fa-plus-square"></i> إضافة كورس</a>
-                <a href="#courses" class="nav-link"><i class="fas fa-video"></i> الكورسات المنشورة</a>
-                <a href="#students" class="nav-link"><i class="fas fa-users-cog"></i> الطلاب</a>
-                <a href="#codes" class="nav-link"><i class="fas fa-key"></i> إدارة الأكواد</a>
-                <div class="mt-5 pt-5 border-top border-secondary opacity-25"></div>
-                <a href="/logout" class="nav-link text-danger mt-3"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
-            </nav>
+    <div class="sidebar">
+        <h2 class="text-primary fw-black text-center mb-5">لوحة الإدارة</h2>
+        <nav class="nav flex-column gap-3">
+            <a href="#add" class="nav-link text-white"><i class="fas fa-plus-circle me-2"></i> إضافة كورس</a>
+            <a href="#courses" class="nav-link text-white"><i class="fas fa-video me-2"></i> إدارة الكورسات</a>
+            <a href="#students" class="nav-link text-white"><i class="fas fa-users me-2"></i> الطلاب</a>
+            <a href="/admin/generate-keys" class="btn btn-primary mt-4">توليد 20 كود جديد</a>
+            <a href="/logout" class="nav-link text-danger mt-5"><i class="fas fa-sign-out-alt me-2"></i> خروج</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <h1 class="mb-4 fw-bold">Dashboard ⚙️</h1>
+
+        <div class="card-custom" id="add">
+            <h3 class="text-primary mb-4">إضافة كورس جديد</h3>
+            <form action="/admin/add-course" method="POST" class="row g-3">
+                <div class="col-md-4">
+                    <label>اسم الكورس</label>
+                    <input type="text" name="title" class="form-control" placeholder="مثلاً: الفصل الأول - فيزياء" required>
+                </div>
+                <div class="col-md-4">
+                    <label>كود فيديو يوتيوب (ID)</label>
+                    <input type="text" name="vid" class="form-control" placeholder="مثال: dQw4w9WgXcQ" required>
+                </div>
+                <div class="col-md-4">
+                    <label>رابط الصورة (Thumbnail)</label>
+                    <input type="text" name="thumb" class="form-control" placeholder="رابط URL للصورة">
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary px-5 py-2">نشر الكورس</button>
+                </div>
+            </form>
         </div>
 
-        <div class="main-content">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-                <div>
-                    <h1 class="fw-black mb-1">أهلاً يا أدمن 👋</h1>
-                    <p class="text-secondary">أنت الآن تدير قاعدة بيانات "مانجو" للكورسات</p>
-                </div>
-                <div class="badge-pill shadow-sm">قاعدة البيانات: متصلة ✅</div>
-            </div>
+        <div class="card-custom" id="courses">
+            <h3 class="mb-4 text-success">الكورسات الحالية (<%= courses.length %>)</h3>
+            <table class="table-custom">
+                <thead>
+                    <tr class="text-secondary">
+                        <th>الغلاف</th>
+                        <th>العنوان</th>
+                        <th>ID الفيديو</th>
+                        <th>التحكم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% courses.forEach(c => { %>
+                    <tr>
+                        <td><img src="<%= c.thumb %>" width="80" class="rounded"></td>
+                        <td><%= c.title %></td>
+                        <td><code><%= c.vid %></code></td>
+                        <td>
+                            <a href="/admin/delete-course/<%= c._id %>" class="btn-delete" onclick="return confirm('حذف الكورس نهائياً؟')">حذف</a>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
 
-            <div class="card-custom shadow-sm" id="add">
-                <h3 class="mb-4"><i class="fas fa-folder-plus text-primary me-2"></i> إضافة كورس إلى MongoDB</h3>
-                <form action="/admin/add-course" method="POST" class="row g-4">
-                    <div class="col-md-4">
-                        <label class="form-label text-secondary">عنوان الكورس</label>
-                        <input type="text" name="title" class="form-control" placeholder="اسم الكورس الذي سيظهر للطالب" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-secondary">كود الفيديو (YouTube ID)</label>
-                        <input type="text" name="vid" class="form-control" placeholder="مثل: dQw4w9WgXcQ" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-secondary">رابط الصورة (Thumbnail)</label>
-                        <input type="text" name="thumb" class="form-control" placeholder="رابط URL للصورة">
-                    </div>
-                    <div class="col-12 text-end mt-4">
-                        <button type="submit" class="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-lg">حفظ ونشر الكورس</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card-custom shadow-sm" id="courses">
-                <h3 class="mb-4"><i class="fas fa-list-ul text-success me-2"></i> الكورسات الحالية (<%= courses.length %>)</h3>
-                <div class="table-responsive">
-                    <table class="table-custom">
-                        <thead>
-                            <tr class="text-secondary small text-center">
-                                <th>الصورة</th>
-                                <th>العنوان</th>
-                                <th>ID الفيديو</th>
-                                <th>التحكم</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (courses && courses.length > 0) { %>
-                                <% courses.forEach(c => { %>
-                                <tr>
-                                    <td><img src="<%= c.thumb %>" width="90" style="border-radius: 12px; border: 1px solid var(--border);"></td>
-                                    <td><span class="fw-bold"><%= c.title %></span></td>
-                                    <td><code class="text-primary"><%= c.vid %></code></td>
-                                    <td>
-                                        <a href="/admin/delete-course/<%= c._id %>" class="btn-delete-course" onclick="return confirm('هل أنت متأكد من حذف الكورس من MongoDB نهائياً؟')">
-                                            <i class="fas fa-trash-alt me-1"></i> مسح
-                                        </a>
-                                    </td>
-                                </tr>
-                                <% }) %>
-                            <% } else { %>
-                                <tr>
-                                    <td colspan="4" class="py-5 text-secondary opacity-50">قاعدة البيانات فارغة حالياً.. ابدأ بإضافة كورس!</td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            </div>
+        <div class="card-custom" id="students">
+            <h3 class="mb-4 text-info">الطلاب المسجلين</h3>
+            <table class="table-custom">
+                <thead>
+                    <tr class="text-secondary">
+                        <th>الاسم</th>
+                        <th>البريد</th>
+                        <th>التحكم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% students.forEach(s => { %>
+                    <tr>
+                        <td><%= s.username %></td>
+                        <td><%= s.email %></td>
+                        <td>
+                            <a href="/admin/delete-student/<%= s._id %>" class="btn-delete">إزالة</a>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>

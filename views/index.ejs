@@ -48,11 +48,12 @@
                             <% 
                             const courseData = enrolledList[course.id];
                             const isEnrolled = courseData && courseData.activated;
+                            const isSameDevice = courseData && courseData.device_id === deviceId;
                             const remainingViews = isEnrolled ? (courseData.max_views - courseData.views) : 0;
                             %>
                             
-                            <% if (isEnrolled && remainingViews > 0) { %>
-                                <!-- الكورس مفعل ويوجد مشاهدات متبقية -->
+                            <% if (isEnrolled && isSameDevice && remainingViews > 0) { %>
+                                <!-- الكورس مفعل + نفس الجهاز + فيه مشاهدات -->
                                 <div class="video-container shadow-sm">
                                     <iframe src="https://www.youtube.com/embed/<%= course.vid %>" frameborder="0" allowfullscreen></iframe>
                                 </div>
@@ -60,8 +61,8 @@
                                     📺剩余 <%= remainingViews %> مشاهدات من <%= courseData.max_views %>
                                 </p>
                                 
-                            <% } else if (isEnrolled && remainingViews <= 0) { %>
-                                <!-- انتهت المشاهدات -->
+                            <% } else if (isEnrolled && isSameDevice && remainingViews <= 0) { %>
+                                <!-- نفس الجهاز لكن خلصت المشاهدات -->
                                 <div class="alert alert-warning text-center">
                                     ⚠️ انتهت المشاهدات! يرجى تفعيل الكورس بكود جديد
                                 </div>
@@ -70,6 +71,19 @@
                                         <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 rounded-pill">تفعيل الكورس</button>
+                                </form>
+                                
+                            <% } else if (isEnrolled && !isSameDevice) { %>
+                                <!-- الكورس مرتبط بجهاز تاني -->
+                                <div class="alert alert-danger text-center">
+                                    🔒 هذا الكورس مرتبط بجهاز آخر!<br>
+                                    يرجى التفعيل من جهازك الأصلي
+                                </div>
+                                <form action="/activate/<%= course.id %>" method="POST">
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="activationCode" class="form-control" placeholder="ادخل كود التفعيل" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 rounded-pill">تفعيل على جهازي</button>
                                 </form>
                                 
                             <% } else { %>
@@ -88,16 +102,4 @@
                 </div>
             <% }) %>
         <% } else { %>
-            <div class="text-center w-100 mt-5">
-                <p class="text-muted">لا توجد دروس مضافة حالياً. انتظرنا قريباً!</p>
-            </div>
-        <% } %>
-    </div>
-</div>
-
-<footer class="text-center mt-5 mb-4 text-muted small">
-    &copy; 2026 جميع الحقوق محفوظة لـ مستر ميدو
-</footer>
-
-</body>
-</html>
+            <div

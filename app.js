@@ -43,21 +43,48 @@ const courses = [
     { id: "c2", title: "كيمياء اللغات - 2 ثانوي", vid: "9Wp3-6n-8f0", thumb: "https://images.unsplash.com/photo-1532187875605-2fe358711e24?w=500" }
 ];
 
-// المسارات
+// المسارات - تم الإصلاح ✅
 app.get('/', (req, res) => res.redirect('/login'));
-app.get('/login', (req, res) => res.render('login', { error: null }));
-app.get('/signup', (req, res) => res.render('signup', { error: null }));
+
+app.get('/login', (req, res) => res.render('login', { 
+    error: null,
+    success: null
+}));
+
+app.get('/signup', (req, res) => res.render('signup', { 
+    error: null,
+    success: null
+}));
 
 app.post('/signup', async (req, res) => {
-    try { await User.create(req.body); res.redirect('/login'); }
-    catch (e) { res.render('signup', { error: "الإيميل مسجل مسبقاً" }); }
+    try { 
+        await User.create(req.body); 
+        res.render('login', { 
+            error: null, 
+            success: "✅ تم إنشاء الحساب بنجاح! سجل دخول الآن" 
+        });
+    }
+    catch (e) { 
+        res.render('signup', { 
+            error: "الإيميل مسجل مسبقاً",
+            success: null
+        }); 
+    }
 });
 
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email, password });
-    if (user) { req.session.userId = user._id; res.redirect('/home'); }
-    else { res.render('login', { error: "بيانات الدخول خاطئة" }); }
+    if (user) { 
+        req.session.userId = user._id; 
+        res.redirect('/home'); 
+    }
+    else { 
+        res.render('login', { 
+            error: "بيانات الدخول خاطئة",
+            success: null
+        }); 
+    }
 });
 
 app.get('/home', async (req, res) => {
@@ -67,7 +94,9 @@ app.get('/home', async (req, res) => {
         courses, 
         enrolledList: user.enrolled_courses || [], 
         username: user.username,
-        deviceMatch: true 
+        deviceMatch: true,
+        error: null,
+        success: null
     });
 });
 
@@ -78,9 +107,27 @@ app.post('/activate/:courseId', async (req, res) => {
         await User.findByIdAndUpdate(req.session.userId, { $addToSet: { enrolled_courses: req.params.courseId } });
         codeDoc.is_used = true;
         await codeDoc.save();
-        res.send("<script>alert('✅ مبروك! الكورس اتفعل عندك'); window.location.href='/home';</script>");
+        
+        // إعادة تحميل الصفحة مع رسالة نجاح
+        const user = await User.findById(req.session.userId);
+        return res.render('index', { 
+            courses, 
+            enrolledList: user.enrolled_courses || [], 
+            username: user.username,
+            deviceMatch: true,
+            error: null,
+            success: "✅ مبروك! الكورس اتفعل عندك"
+        });
     } else {
-        res.send("<script>alert('❌ الكود غلط أو مستخدم'); window.location.href='/home';</script>");
+        const user = await User.findById(req.session.userId);
+        return res.render('index', { 
+            courses, 
+            enrolledList: user.enrolled_courses || [], 
+            username: user.username,
+            deviceMatch: true,
+            error: "❌ الكود غلط أو مستخدم",
+            success: null
+        });
     }
 });
 

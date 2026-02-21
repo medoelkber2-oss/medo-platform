@@ -40,8 +40,8 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Courses
-const courses = [
+// Courses - متغير عام
+let courses = [
     { id: "c1", title: "مراجعة الفيزياء - 1 ثانوي", vid: "dQw4w9WgXcQ", thumb: "https://images.unsplash.com/photo-1636466484362-d26e79aa59d6?w=500" },
     { id: "c2", title: "كيمياء اللغات - 2 ثانوي", vid: "9Wp3-6n-8f0", thumb: "https://images.unsplash.com/photo-1532187875605-2fe358711e24?w=500" }
 ];
@@ -52,7 +52,8 @@ function getCourses(str) {
     catch { return {}; }
 }
 
-// Routes
+// ==================== المسارات ====================
+
 app.get('/', (req, res) => res.redirect('/login'));
 
 app.get('/login', (req, res) => {
@@ -161,21 +162,57 @@ app.post('/activate/:courseId', async (req, res) => {
     }
 });
 
-// Admin
+// ==================== لوحة الأدمن ====================
+
 app.get('/admin', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
     const students = await User.find({});
     const codes = await Code.find({});
     
-    res.render('admin', { students, codes, error: null, success: null });
+    res.render('admin', { 
+        students: students, 
+        codes: codes, 
+        courses: courses,
+        error: null, 
+        success: null 
+    });
+});
+
+app.post('/admin/add-course', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    
+    const { title, vid, thumb } = req.body;
+    const newId = "c" + (courses.length + 1);
+    courses.push({ id: newId, title: title, vid: vid, thumb: thumb });
+    
+    const students = await User.find({});
+    const codes = await Code.find({});
+    
+    res.render('admin', { 
+        students: students, 
+        codes: codes,
+        courses: courses,
+        error: null, 
+        success: "✅ تم إضافة الكورس بنجاح!" 
+    });
 });
 
 app.post('/admin/add-code', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
     await Code.create({ code: req.body.newCode, course_id: req.body.courseId });
-    res.redirect('/admin');
+    
+    const students = await User.find({});
+    const codes = await Code.find({});
+    
+    res.render('admin', { 
+        students: students, 
+        codes: codes,
+        courses: courses,
+        error: null, 
+        success: "✅ تم إضافة الكود بنجاح!" 
+    });
 });
 
 app.get('/admin/delete-student/:id', async (req, res) => {
@@ -187,6 +224,20 @@ app.get('/admin/delete-student/:id', async (req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/login');
+});
+
+// ==================== توليد أكواد ====================
+app.get('/admin/generate-keys', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    
+    const ids = ["c1", "c2"];
+    for (let id of ids) {
+        for (let i = 0; i < 10; i++) {
+            let codeVal = "MEDO-" + Math.random().toString(36).substring(5).toUpperCase();
+            await Code.create({ code: codeVal, course_id: id });
+        }
+    }
+    res.redirect('/admin');
 });
 
 const PORT = process.env.PORT || 8080;

@@ -5,103 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - مستر ميدو</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            margin: 0;
         }
-        .login-box {
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 25px;
-            padding: 50px 40px;
+        .login-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 30px;
             width: 100%;
-            max-width: 420px;
+            max-width: 450px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
-        .login-box h2 {
-            color: white;
-            text-align: center;
-            font-weight: 900;
-            margin-bottom: 5px;
-            font-size: 2rem;
-        }
-        .login-box .subtitle {
-            color: rgba(255,255,255,0.5);
-            text-align: center;
-            margin-bottom: 35px;
-            font-size: 1.1rem;
-        }
         .form-control {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            padding: 16px;
-            border-radius: 14px;
-            margin-bottom: 15px;
-            font-family: 'Cairo', sans-serif;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: right;
         }
         .form-control:focus {
-            background: rgba(255,255,255,0.15);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
             border-color: #6366f1;
-            box-shadow: 0 0 25px rgba(99,102,241,0.3);
-            color: white;
-            outline: none;
+            box-shadow: none;
         }
-        .form-control::placeholder { color: rgba(255,255,255,0.4); }
-        
         .btn-login {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: #6366f1;
             border: none;
-            color: white;
-            padding: 16px;
-            border-radius: 14px;
-            font-weight: 700;
-            width: 100%;
-            font-size: 1.1rem;
-            cursor: pointer;
-            font-family: 'Cairo', sans-serif;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: bold;
             transition: 0.3s;
         }
-        .btn-login:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(99,102,241,0.4); }
-        
-        .alert { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 600; }
-        .alert-success { background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #10b981; }
-        .alert-danger { background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #ef4444; }
-        
-        .links { text-align: center; margin-top: 25px; color: rgba(255,255,255,0.6); }
-        .links a { color: #6366f1; text-decoration: none; font-weight: 700; }
-        .links a:hover { text-decoration: underline; }
+        .btn-login:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>🎓 مستر ميدو</h2>
-        <p class="subtitle">المنصة التعليمية</p>
-        
-        <% if (success) { %>
-        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success %></div>
-        <% } %>
+    <div class="login-card shadow-lg text-center">
+        <h2 class="fw-black mb-2">🎓 مستر ميدو</h2>
+        <p class="text-secondary mb-4">أهلاً بك في منصتك التعليمية</p>
+
         <% if (error) { %>
-        <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <%= error %></div>
+            <div class="alert alert-danger py-2 small" style="border-radius: 10px;">
+                <i class="fas fa-exclamation-circle me-1"></i> <%= error %>
+            </div>
         <% } %>
-        
+        <% if (success) { %>
+            <div class="alert alert-success py-2 small" style="border-radius: 10px;">
+                <i class="fas fa-check-circle me-1"></i> <%= success %>
+            </div>
+        <% } %>
+
         <form action="/login" method="POST">
-            <input type="email" name="email" class="form-control" placeholder="البريد الإلكتروني" required>
-            <input type="password" name="password" class="form-control" placeholder="كلمة المرور" required>
-            <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> دخول</button>
+            <div class="mb-3 text-end">
+                <label class="form-label small text-secondary">البريد الإلكتروني</label>
+                <input type="email" name="email" class="form-control" placeholder="example@mail.com" required>
+            </div>
+            <div class="mb-4 text-end">
+                <label class="form-label small text-secondary">كلمة السر</label>
+                <input type="password" name="password" class="form-control" placeholder="********" required>
+            </div>
+            <button type="submit" class="btn btn-login w-100 text-white mb-3">دخول الحساب</button>
         </form>
-        
-        <p class="links">ليس لديك حساب؟ <a href="/signup">سجل الآن</a></p>
+
+        <p class="small text-secondary mt-3">
+            ليس لديك حساب؟ <a href="/signup" class="text-primary text-decoration-none fw-bold">أنشئ حساباً الآن</a>
+        </p>
     </div>
 </body>
 </html>

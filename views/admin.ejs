@@ -146,51 +146,6 @@
         
         .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4); }
         
-        /* Courses Section */
-        .courses-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 30px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(20px);
-        }
-        
-        .courses-card h3 { color: white; font-weight: 800; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
-        .courses-card h3 i { width: 45px; height: 45px; background: linear-gradient(135deg, #06b6d4, #0891b2); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        
-        .course-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255,255,255,0.03);
-            border-radius: 14px;
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            transition: 0.3s;
-        }
-        
-        .course-item:hover { background: rgba(255,255,255,0.08); }
-        .course-item img { width: 80px; height: 50px; object-fit: cover; border-radius: 8px; }
-        .course-info { flex: 1; margin-right: 15px; }
-        .course-info h4 { color: white; font-weight: 700; margin-bottom: 5px; }
-        .course-info p { color: rgba(255,255,255,0.5); font-size: 0.85rem; }
-        
-        .btn-delete-course {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-        
-        .btn-delete-course:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); }
-        
         .table-card {
             background: var(--glass);
             border: 1px solid var(--border);
@@ -312,3 +267,73 @@
                 <h3><i class="fas fa-key"></i> إضافة كود تفعيل</h3>
                 <form action="/admin/add-code" method="POST">
                     <input type="text" name="newCode" class="form-control" placeholder="أدخل الكود الجديد" required>
+                    <button type="submit" class="btn-submit"><i class="fas fa-plus"></i> إضافة الكود</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h3><i class="fas fa-users"></i> الطلاب المسجلين (<%= students.length %>)</h3>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الإيميل</th>
+                        <th>عدد الكورسات</th>
+                        <th>حذف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (students.length > 0) { %>
+                        <% students.forEach(s => { %>
+                        <tr>
+                            <td><%= s.username %></td>
+                            <td><%= s.email %></td>
+                            <td>
+                                <% 
+                                let enrolled = {};
+                                try { enrolled = JSON.parse(s.courses || '{}'); } catch(e) {}
+                                %>
+                                <span class="badge-custom <%= Object.keys(enrolled).length > 0 ? 'badge-active' : 'badge-inactive' %>">
+                                    <%= Object.keys(enrolled).length %> كورس
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/admin/delete-student/<%= s._id %>" class="btn-delete-small" onclick="return confirm('هل أنت متأكد من حذف هذا الطالب؟')">
+                                    <i class="fas fa-trash"></i> حذف
+                                </a>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: rgba(255,255,255,0.5); padding: 40px;">
+                                <i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <p>لا يوجد طلاب مسجلين</p>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="codes-card">
+            <h3><i class="fas fa-key"></i> الأكواد المتوفرة (<%= codes.length %>)</h3>
+            <div class="codes-grid">
+                <% if (codes.length > 0) { %>
+                    <% codes.forEach(c => { %>
+                    <div class="code-item <%= c.used ? 'used' : 'available' %>">
+                        <span><%= c.code %></span>
+                        <a href="/admin/delete-code/<%= c._id %>" class="delete-btn">✕</a>
+                    </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="empty-state">
+                        <i class="fas fa-key"></i>
+                        <p>لا توجد أكواد متوفرة</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body

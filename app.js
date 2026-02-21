@@ -19,8 +19,21 @@ const User = mongoose.model('User', new mongoose.Schema({
     password: String, 
     courses: { type: String, default: '{}' }
 }));
-const Code = mongoose.model('Code', new mongoose.Schema({ code: String, used: { type: Boolean, default: false } }));
-const Course = mongoose.model('Course', new mongoose.Schema({ title: String, vid: String, thumb: String }));
+
+const Code = mongoose.model('Code', new mongoose.Schema({ 
+    code: String, 
+    used: { type: Boolean, default: false } 
+}));
+
+// تعديل موديل الكورس لدعم المحاضرات
+const Course = mongoose.model('Course', new mongoose.Schema({ 
+    title: String, 
+    thumb: String,
+    lectures: [{
+        title: String,
+        vid: String
+    }] 
+}));
 
 app.use(session({ secret: 'medo-platform-2026', resave: false, saveUninitialized: false }));
 
@@ -44,6 +57,21 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// --- مسارات إنشاء الحساب ---
+app.get('/signup', (req, res) => res.render('signup', { error: '', success: '' }));
+
+app.post('/signup', async (req, res) => {
+    const { username, email, password } = req.body;
+    
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        return res.render('signup', { error: '❌ البريد الإلكتروني مسجل مسبقاً', success: '' });
+    }
+    
+    await User.create({ username, email, password });
+    res.render('login', { error: '', success: '✅ تم إنشاء الحساب بنجاح، يمكنك تسجيل الدخول الآن' });
+});
+
 app.get('/home', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const user = await User.findById(req.session.userId);
@@ -55,7 +83,6 @@ app.get('/home', async (req, res) => {
     });
 });
 
-// [حل مشكلة التفعيل] مسار تفعيل الكورس بالكود
 app.post('/activate/:courseId', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const { activationCode } = req.body;
@@ -81,12 +108,14 @@ app.post('/activate/:courseId', async (req, res) => {
     }
 });
 
-// [حل مشكلة الفيديو] مسار صفحة الفيديو
+// تعديل مسار الفيديو لجلب رقم المحاضرة
 app.get('/video/:id', async (req, res) => {
     if (!req.session.userId && !req.session.isAdmin) return res.redirect('/login');
     const course = await Course.findById(req.params.id);
     if (!course) return res.send("الكورس غير موجود");
-    res.render('video', { course });
+    
+    const lecIndex = parseInt(req.query.lec) || 0; 
+    res.render('video', { course, lecIndex });
 });
 
 // ================= لوحة التحكم (Admin) =================
@@ -106,8 +135,18 @@ app.get('/admin', async (req, res) => {
 
 app.post('/admin/add-course', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
-    const { title, vid, thumb } = req.body;
-    await Course.create({ title, vid, thumb: thumb || 'https://via.placeholder.com/300x180' });
+    const { title, thumb } = req.body;
+    await Course.create({ title, thumb: thumb || 'https://via.placeholder.com/300x180', lectures: [] });
+    res.redirect('/admin');
+});
+
+// مسار جديد لإضافة محاضرة للكورس
+app.post('/admin/add-lecture', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    const { courseId, title, vid } = req.body;
+    await Course.findByIdAndUpdate(courseId, { 
+        $push: { lectures: { title, vid } } 
+    });
     res.redirect('/admin');
 });
 

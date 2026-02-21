@@ -14,7 +14,10 @@ mongoose.connect(mongoURI).then(() => console.log("✅ Database Connected"));
 
 // الموديلات
 const User = mongoose.model('User', new mongoose.Schema({
-    username: String, email: { type: String, unique: true }, password: String, courses: { type: String, default: '{}' }
+    username: String, 
+    email: { type: String, unique: true }, 
+    password: String, 
+    courses: { type: String, default: '{}' }
 }));
 const Code = mongoose.model('Code', new mongoose.Schema({ code: String, used: { type: Boolean, default: false } }));
 const Course = mongoose.model('Course', new mongoose.Schema({ title: String, vid: String, thumb: String }));
@@ -57,31 +60,30 @@ app.get('/home', async (req, res) => {
 
 app.get('/admin', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
-    res.render('admin', {
-        students: await User.find({}),
-        codes: await Code.find({}),
-        courses: await Course.find({}),
-        error: '', success: ''
+    
+    const studentsRaw = await User.find({});
+    const codes = await Code.find({});
+    const dbCourses = await Course.find({});
+
+    // حساب عدد الكورسات المفعلة لكل طالب
+    const students = studentsRaw.map(s => {
+        const enrolled = JSON.parse(s.courses || '{}');
+        const count = Object.keys(enrolled).length;
+        return { ...s._doc, activeCoursesCount: count };
     });
+
+    res.render('admin', { students, codes, courses: dbCourses });
 });
 
-// [إضافة] تصفير حساب الطالب (قفل الكورسات)
 app.get('/admin/reset-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     await User.findByIdAndUpdate(req.params.id, { courses: '{}' });
     res.redirect('/admin');
 });
 
-app.post('/admin/add-course', async (req, res) => {
+app.get('/admin/delete-all-codes', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
-    const { title, vid, thumb } = req.body;
-    await Course.create({ title, vid, thumb: thumb || 'https://via.placeholder.com/300' });
-    res.redirect('/admin');
-});
-
-app.get('/admin/delete-course/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    await Course.findByIdAndDelete(req.params.id);
+    await Code.deleteMany({});
     res.redirect('/admin');
 });
 
@@ -107,4 +109,5 @@ app.get('/admin/delete-student/:id', async (req, res) => {
 
 app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
 
-app.listen(8080, () => console.log("🚀 Server Ready"));
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`🚀 Server on ${PORT}`));

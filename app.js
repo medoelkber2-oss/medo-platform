@@ -1,8 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
-const path = require('path');
-const crypto = require('crypto');
 
 const app = express();
 
@@ -11,14 +9,12 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware للتعامل مع device ID
+// Middleware لتوليد device ID من الـ session
 app.use((req, res, next) => {
-    let deviceId = req.cookies.deviceId;
-    if (!deviceId) {
-        deviceId = crypto.randomBytes(16).toString('hex');
-        res.cookie('deviceId', deviceId, { maxAge: 365 * 24 * 60 * 60 * 1000 }); // سنة كاملة
+    if (!req.session.deviceId) {
+        req.session.deviceId = Math.random().toString(36).substring(2) + Date.now().toString(36);
     }
-    req.deviceId = deviceId;
+    req.deviceId = req.session.deviceId;
     next();
 });
 
@@ -34,14 +30,13 @@ const User = mongoose.model('User', new mongoose.Schema({
     username: String,
     email: { type: String, unique: true },
     password: String,
-    // الكورسات المفعلة مع عدد المشاهدات وربط الجهاز
     enrolled_courses: {
         type: Map,
         of: {
             activated: { type: Boolean, default: true },
             views: { type: Number, default: 0 },
             max_views: { type: Number, default: 3 },
-            device_id: { type: String, default: null } // ربط الجهاز
+            device_id: { type: String, default: null }
         },
         default: {}
     }
@@ -121,7 +116,12 @@ app.get('/home', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     const user = await User.findById(req.session.userId);
     
-    const enrolledObj = user.enrolled_courses ? Object.fromEntries(user.enrolled_courses) : {};
+    let enrolledObj = {};
+    if (user.enrolled_courses) {
+        user.enrolled_courses.forEach((value, key) => {
+            enrolledObj[key] = value;
+        });
+    }
     
     res.render('index', { 
         courses, 
@@ -133,7 +133,7 @@ app.get('/home', async (req, res) => {
     });
 });
 
-// تفعيل كورس - مع ربط الجهاز
+// تفعيل كورس
 app.post('/activate/:courseId', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
     
@@ -141,10 +141,16 @@ app.post('/activate/:courseId', async (req, res) => {
     const codeDoc = await Code.findOne({ code: activationCode, course_id: req.params.courseId, is_used: false });
     const user = await User.findById(req.session.userId);
     
-    let enrolledObj = user.enrolled_courses ? Object.fromEntries(user.enrolled_courses) : {};
+    let enrolledObj = {};
+    if (user.enrolled_courses) {
+        user.enrolled_courses.forEach((value, key) => {
+            enrolledObj[key] = value;
+        });
+    }
+    
     const courseData = enrolledObj[req.params.courseId];
     
-    // 检查是否已经绑定到其他设备
+    // فحص إذا كان مرتبط بجهاز آخر
     if (courseData && courseData.device_id && courseData.device_id !== req.deviceId) {
         return res.render('index', { 
             courses, 
@@ -157,16 +163,14 @@ app.post('/activate/:courseId', async (req, res) => {
     }
     
     if (codeDoc) {
-        // تفعيل الكورس مع ربط الجهاز الحالي
         if (!enrolledObj[req.params.courseId]) {
             enrolledObj[req.params.courseId] = {
                 activated: true,
                 views: 0,
                 max_views: 3,
-                device_id: req.deviceId // ربط بالجهاز الحالي
+                device_id: req.deviceId
             };
         } else {
-            // إعادة التفعيل تحسب مشاهدات جديدة وتربط الجهاز
             enrolledObj[req.params.courseId] = {
                 activated: true,
                 views: 0,
@@ -183,7 +187,12 @@ app.post('/activate/:courseId', async (req, res) => {
         await codeDoc.save();
         
         const updatedUser = await User.findById(req.session.userId);
-        const updatedEnrolled = Object.fromEntries(updatedUser.enrolled_courses);
+        let updatedEnrolled = {};
+        if (updatedUser.enrolled_courses) {
+            updatedUser.enrolled_courses.forEach((value, key) => {
+                updatedEnrolled[key] = value;
+            });
+        }
         
         return res.render('index', { 
             courses, 

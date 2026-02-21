@@ -38,7 +38,7 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// Courses - فارغة (هتضيفها من الأدمن)
+// Courses
 let courses = [];
 
 function parseCourses(str) {
@@ -180,7 +180,7 @@ app.post('/admin/add-code', async (req, res) => {
     });
 });
 
-app.get('/admin/delete-student/:id', async (req, هر res) => {
+app.get('/admin/delete-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     await User.findByIdAndDelete(req.params.id);
     res.redirect('/admin');

@@ -2,16 +2,19 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - مستر ميدو</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; padding: 20px; }
         .card-custom { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        .table { color: white; }
+        .table { color: white; vertical-align: middle; }
+        .dropdown-menu-dark { background-color: #1e293b; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
+
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="text-primary fw-bold">لوحة تحكم مستر ميدو 🛠️</h2>
@@ -21,168 +24,148 @@
         <div class="row">
             <div class="col-md-5">
                 <div class="card-custom">
-                    <h5>إنشاء كورس جديد (غلاف وعنوان)</h5>
+                    <h5><i class="fas fa-plus-circle me-2"></i>إنشاء كورس جديد</h5>
                     <form action="/admin/add-course" method="POST">
-                        <input type="text" name="title" class="form-control mb-2" placeholder="عنوان الكورس" required>
-                        <input type="text" name="thumb" class="form-control mb-2" placeholder="رابط صورة الغلاف">
+                        <input type="text" name="title" class="form-control mb-2 bg-dark text-white border-secondary" placeholder="عنوان الكورس" required>
+                        <input type="text" name="thumb" class="form-control mb-2 bg-dark text-white border-secondary" placeholder="رابط صورة الغلاف">
                         <button class="btn btn-primary w-100">إنشاء الكورس</button>
                     </form>
                 </div>
             </div>
             <div class="col-md-7">
                 <div class="card-custom">
-                    <h5>إضافة محاضرة لكورس موجود</h5>
+                    <h5><i class="fas fa-video me-2"></i>إضافة محاضرة لكورس موجود</h5>
                     <form action="/admin/add-lecture" method="POST" class="row g-2">
                         <div class="col-12">
-                            <select name="courseId" class="form-select" required>
+                            <select name="courseId" class="form-select bg-dark text-white border-secondary" required>
                                 <option value="">اختر الكورس المستهدف...</option>
-                                <% courses.forEach(c => { %> <option value="<%= c._id %>"><%= c.title %></option> <% }) %>
+                                <% courses.forEach(c => { %> 
+                                    <option value="<%= c._id %>"><%= c.title %></option> 
+                                <% }) %>
                             </select>
                         </div>
-                        <div class="col-md-6"><input type="text" name="title" class="form-control" placeholder="عنوان المحاضرة" required></div>
-                        <div class="col-md-6"><input type="text" name="vid" class="form-control" placeholder="YouTube Video ID" required></div>
-                        <div class="col-12"><button class="btn btn-success w-100">إضافة المحاضرة</button></div>
+                        <div class="col-md-6">
+                            <input type="text" name="title" class="form-control bg-dark text-white border-secondary" placeholder="عنوان المحاضرة" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="vid" class="form-control bg-dark text-white border-secondary" placeholder="YouTube Video ID" required>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-success w-100">إضافة المحاضرة</button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="card-custom">
-            <h5>الكورسات الحالية</h5>
-            <table class="table table-dark table-hover">
-                <thead><tr><th>الغلاف</th><th>العنوان</th><th>المحاضرات</th><th>التحكم</th></tr></thead>
-                <tbody>
-                    <% courses.forEach(c => { %>
-                    <tr>
-                        <td><img src="<%= c.thumb %>" width="50" class="rounded"></td>
-                        <td><%= c.title %></td>
-                        <td><%= c.lectures ? c.lectures.length : 0 %></td>
-                        <td>
-                            <button class="btn btn-sm btn-info" onclick="openEditModal('<%= c._id %>')"><i class="fas fa-edit"></i> تعديل</button>
-                            <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')"><i class="fas fa-trash"></i></a>
-                        </td>
-                    </tr>
-                    <% }) %>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card-custom">
-            <div class="d-flex justify-content-between mb-3">
-
-<div class="card-custom mt-4">
-    <h5>قائمة الكورسات وإدارة المحتوي</h5>
-    <table class="table table-dark table-hover">
-        <thead>
-            <tr>
-                <th>الغلاف</th>
-                <th>العنوان</th>
-                <th>التحكم بالكورس</th>
-                <th>إدارة المحاضرات</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% courses.forEach(c => { %>
-            <tr>
-                <td><img src="<%= c.thumb %>" width="50" class="rounded"></td>
-                <td><%= c.title %></td>
-                <td>
-                    <button class="btn btn-sm btn-info" onclick="openEditCourseModal('<%= c._id %>')">تعديل</button>
-                    <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكورس بالكامل؟')">حذف</a>
-                </td>
-                <td>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                            المحاضرات (<%= c.lectures.length %>)
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark p-2" style="min-width: 250px;">
-                            <% c.lectures.forEach((lec, index) => { %>
-                                <li class="d-flex justify-content-between align-items-center mb-1 border-bottom border-secondary pb-1">
-                                    <span class="small"><%= index+1 %>. <%= lec.title %></span>
-                                    <div>
-                                        <i class="fas fa-edit text-info me-2" style="cursor:pointer" onclick="openEditLecModal('<%= c._id %>', '<%= index %>')"></i>
-                                        <a href="/admin/delete-lecture/<%= c._id %>/<%= index %>" class="text-danger"><i class="fas fa-trash-alt"></i></a>
-                                    </div>
-                                </li>
-                            <% }) %>
-                            <% if(c.lectures.length == 0) { %> <li class="small text-center">لا توجد محاضرات</li> <% } %>
-                        </ul>
-                    </div>
-                </td>
-            </tr>
-            <% }) %>
-        </tbody>
-    </table>
-</div>
-
-<div class="modal fade" id="editLecModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white border-info">
-            <form id="editLecForm" method="POST">
-                <div class="modal-header border-info"><h5>تعديل المحاضرة</h5></div>
-                <div class="modal-body">
-                    <label class="small text-info">اسم المحاضرة</label>
-                    <input type="text" name="title" id="editLecTitle" class="form-control mb-2 bg-dark text-white border-secondary" required>
-                    <label class="small text-info">YouTube Video ID</label>
-                    <input type="text" name="vid" id="editLecVid" class="form-control bg-dark text-white border-secondary" required>
-                </div>
-                <div class="modal-footer border-info">
-                    <button type="submit" class="btn btn-info">حفظ التعديلات</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    // وظيفة فتح مودال تعديل المحاضرة
-    async function openEditLecModal(courseId, lecIndex) {
-        const res = await fetch(`/admin/lecture-data/${courseId}/${lecIndex}`);
-        const lecture = await res.json();
-        
-        document.getElementById('editLecTitle').value = lecture.title;
-        document.getElementById('editLecVid').value = lecture.vid;
-        document.getElementById('editLecForm').action = `/admin/edit-lecture/${courseId}/${lecIndex}`;
-        
-        new bootstrap.Modal(document.getElementById('editLecModal')).show();
-    }
-
-    // وظيفة فتح مودال تعديل الكورس (الموجودة سابقاً)
-    async function openEditCourseModal(id) {
-        const res = await fetch('/admin/course-data/' + id);
-        const course = await res.json();
-        document.getElementById('editTitle').value = course.title;
-        document.getElementById('editThumb').value = course.thumb;
-        document.getElementById('editForm').action = '/admin/edit-course/' + id;
-        new bootstrap.Modal(document.getElementById('editModal')).show();
-    }
-</script>
-
-
-                <h5>الأكواد</h5>
-                <a href="/admin/generate-keys" class="btn btn-sm btn-success">توليد 20 كود</a>
+        <div class="card-custom mt-4">
+            <h5><i class="fas fa-tasks me-2"></i>قائمة الكورسات وإدارة المحتوي</h5>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>الغلاف</th>
+                            <th>العنوان</th>
+                            <th>التحكم بالكورس</th>
+                            <th>إدارة المحاضرات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% courses.forEach(c => { %>
+                        <tr>
+                            <td><img src="<%= c.thumb %>" width="60" class="rounded shadow-sm"></td>
+                            <td><%= c.title %></td>
+                            <td>
+                                <button class="btn btn-sm btn-info me-1" onclick="openEditCourseModal('<%= c._id %>')">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكورس بالكامل؟')">
+                                    <i class="fas fa-trash"></i> حذف
+                                </a>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                        المحاضرات (<%= c.lectures.length %>)
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-dark p-2" style="min-width: 280px;">
+                                        <% c.lectures.forEach((lec, index) => { %>
+                                            <li class="d-flex justify-content-between align-items-center mb-1 border-bottom border-secondary pb-1">
+                                                <span class="small text-truncate" style="max-width: 180px;"><%= index+1 %>. <%= lec.title %></span>
+                                                <div>
+                                                    <i class="fas fa-edit text-info me-2" style="cursor:pointer" onclick="openEditLecModal('<%= c._id %>', '<%= index %>')"></i>
+                                                    <a href="/admin/delete-lecture/<%= c._id %>/<%= index %>" class="text-danger" onclick="return confirm('حذف المحاضرة؟')">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                        <% }) %>
+                                        <% if(c.lectures.length == 0) { %> 
+                                            <li class="small text-center text-secondary py-2">لا توجد محاضرات</li> 
+                                        <% } %>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
             </div>
-            <div class="row" style="max-height: 200px; overflow-y: auto;">
+        </div>
+
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5><i class="fas fa-key me-2"></i>أكواد التفعيل</h5>
+                <a href="/admin/generate-keys" class="btn btn-sm btn-warning fw-bold">توليد 20 كود جديد</a>
+            </div>
+            <div class="row g-2" style="max-height: 250px; overflow-y: auto;">
                 <% codes.forEach(code => { %>
-                    <div class="col-md-3 mb-2 small"><span class="<%= code.used ? 'text-danger' : 'text-success' %>"><%= code.code %></span></div>
+                    <div class="col-md-3">
+                        <div class="p-2 border border-secondary rounded text-center small bg-dark">
+                            <span class="<%= code.used ? 'text-danger text-decoration-line-through' : 'text-success fw-bold' %>">
+                                <%= code.code %>
+                            </span>
+                        </div>
+                    </div>
                 <% }) %>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="editCourseModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content bg-dark text-white border-secondary">
-                <form id="editForm" method="POST">
+                <form id="editCourseForm" method="POST">
                     <div class="modal-header border-secondary"><h5>تعديل بيانات الكورس</h5></div>
                     <div class="modal-body">
-                        <label>عنوان الكورس</label>
-                        <input type="text" name="title" id="editTitle" class="form-control mb-2 bg-dark text-white border-secondary" required>
-                        <label>رابط الغلاف</label>
+                        <label class="mb-1">عنوان الكورس</label>
+                        <input type="text" name="title" id="editTitle" class="form-control mb-3 bg-dark text-white border-secondary" required>
+                        <label class="mb-1">رابط صورة الغلاف</label>
                         <input type="text" name="thumb" id="editThumb" class="form-control bg-dark text-white border-secondary">
                     </div>
                     <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                         <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editLecModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-info">
+                <form id="editLecForm" method="POST">
+                    <div class="modal-header border-info"><h5>تعديل المحاضرة</h5></div>
+                    <div class="modal-body">
+                        <label class="small text-info mb-1">اسم المحاضرة</label>
+                        <input type="text" name="title" id="editLecTitle" class="form-control mb-3 bg-dark text-white border-secondary" required>
+                        <label class="small text-info mb-1">YouTube Video ID</label>
+                        <input type="text" name="vid" id="editLecVid" class="form-control bg-dark text-white border-secondary" required>
+                    </div>
+                    <div class="modal-footer border-info">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-info">تحديث المحاضرة</button>
                     </div>
                 </form>
             </div>
@@ -191,13 +174,24 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        async function openEditModal(id) {
+        // فتح مودال تعديل الكورس
+        async function openEditCourseModal(id) {
             const res = await fetch('/admin/course-data/' + id);
             const course = await res.json();
             document.getElementById('editTitle').value = course.title;
             document.getElementById('editThumb').value = course.thumb;
-            document.getElementById('editForm').action = '/admin/edit-course/' + id;
-            new bootstrap.Modal(document.getElementById('editModal')).show();
+            document.getElementById('editCourseForm').action = '/admin/edit-course/' + id;
+            new bootstrap.Modal(document.getElementById('editCourseModal')).show();
+        }
+
+        // فتح مودال تعديل المحاضرة
+        async function openEditLecModal(courseId, lecIndex) {
+            const res = await fetch(`/admin/lecture-data/${courseId}/${lecIndex}`);
+            const lecture = await res.json();
+            document.getElementById('editLecTitle').value = lecture.title;
+            document.getElementById('editLecVid').value = lecture.vid;
+            document.getElementById('editLecForm').action = `/admin/edit-lecture/${courseId}/${lecIndex}`;
+            new bootstrap.Modal(document.getElementById('editLecModal')).show();
         }
     </script>
 </body>

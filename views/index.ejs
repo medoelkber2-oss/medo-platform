@@ -3,72 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصتي التعليمية 🎓</title>
+    <title>منصتي</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Cairo', sans-serif; background: #f4f7f6; }
-        .navbar { background: #212529; color: white; }
-        .course-card { border: none; border-radius: 15px; overflow: hidden; transition: 0.3s; height: 100%; }
-        .course-card:hover { transform: translateY(-5px); }
-        .video-container { position: relative; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 10px; overflow: hidden; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    </style>
 </head>
-<body>
+<body style="background:#f4f7f6">
+    <nav class="navbar navbar-dark bg-dark p-3">
+        <div class="container d-flex justify-content-between">
+            <h4 class="mb-0">أكاديمية مستر ميدو</h4>
+            <div>
+                <span class="me-3">أهلاً، <strong><%= username %></strong></span>
+                <a href="/logout" class="btn btn-outline-danger btn-sm">خروج</a>
+            </div>
+        </div>
+    </nav>
 
-<nav class="navbar p-3 mb-5 shadow">
-    <div class="container d-flex justify-content-between align-items-center">
-        <h3 class="mb-0 fw-bold">أكاديمية مستر ميدو 🎓</h3>
-        <div class="d-flex align-items-center">
-            <span class="me-3">أهلاً، <strong><%= username %></strong></span>
-            <a href="/logout" class="btn btn-sm btn-outline-danger">خروج</a>
+    <div class="container mt-4">
+        <% if (success) { %>
+        <div class="alert alert-success text-center"><%= success %></div>
+        <% } %>
+        <% if (error) { %>
+        <div class="alert alert-danger text-center"><%= error %></div>
+        <% } %>
+
+        <h4 class="mb-4">الكورسات المتاحة</h4>
+        
+        <div class="row">
+            <% courses.forEach(course => { %>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5><%= course.title %></h5>
+                            
+                            <% 
+                            const data = enrolledList[course.id];
+                            const isEnrolled = data && data.views !== undefined;
+                            const sameDevice = !data || data.device === sessionId;
+                            const remaining = isEnrolled ? (data.max - data.views) : 0;
+                            %>
+                            
+                            <% if (isEnrolled && sameDevice && remaining > 0) { %>
+                                <div class="ratio ratio-16x9 mb-2">
+                                    <iframe src="https://www.youtube.com/embed/<%= course.vid %>" allowfullscreen></iframe>
+                                </div>
+                                <p class="text-info">بقي <%= remaining %> مشاهدات</p>
+                                
+                            <% } else if (isEnrolled && sameDevice && remaining <= 0) { %>
+                                <div class="alert alert-warning">انتهت المشاهدات!</div>
+                                <form action="/activate/<%= course.id %>" method="POST">
+                                    <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
+                                    <button class="btn btn-primary w-100">تفعيل</button>
+                                </form>
+                                
+                            <% } else if (isEnrolled && !sameDevice) { %>
+                                <div class="alert alert-danger">مرتبط بجهاز آخر!</div>
+                                <form action="/activate/<%= course.id %>" method="POST">
+                                    <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
+                                    <button class="btn btn-primary w-100">تفعيل على جهازي</button>
+                                </form>
+                                
+                            <% } else { %>
+                                <img src="<%= course.thumb %>" class="img-fluid rounded mb-2" style="height:150px;object-fit:cover">
+                                <form action="/activate/<%= course.id %>" method="POST">
+                                    <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
+                                    <button class="btn btn-primary w-100">تفعيل الكورس</button>
+                                </form>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
         </div>
     </div>
-</nav>
-
-<div class="container">
-    <% if (success) { %>
-    <div class="alert alert-success text-center"><%= success %></div>
-    <% } %>
-    <% if (error) { %>
-    <div class="alert alert-danger text-center"><%= error %></div>
-    <% } %>
-
-    <h3 class="fw-bold mb-4">📚 كورساتي المتاحة</h3>
-    <div class="row g-4">
-        <% courses.forEach(course => { %>
-            <div class="col-md-4">
-                <div class="card course-card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="fw-bold mb-3"><%= course.title %></h5>
-                        
-                        <% 
-                        const courseData = enrolledList[course.id];
-                        const isEnrolled = courseData && courseData.views !== undefined;
-                        const isSameDevice = !courseData || courseData.device === sessionId;
-                        const remaining = isEnrolled ? (courseData.max - courseData.views) : 0;
-                        %>
-                        
-                        <% if (isEnrolled && isSameDevice && remaining > 0) { %>
-                            <div class="video-container shadow-sm">
-                                <iframe src="https://www.youtube.com/embed/<%= course.vid %>" frameborder="0" allowfullscreen></iframe>
-                            </div>
-                            <p class="text-info mt-2 text-center fw-bold">📺 بقي <%= remaining %> مشاهدات</p>
-                            
-                        <% } else if (isEnrolled && isSameDevice && remaining <= 0) { %>
-                            <div class="alert alert-warning text-center">⚠️ انتهت المشاهدات!</div>
-                            <form action="/activate/<%= course.id %>" method="POST">
-                                <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
-                                <button type="submit" class="btn btn-primary w-100">تفعيل</button>
-                            </form>
-                            
-                        <% } else if (isEnrolled && !isSameDevice) { %>
-                            <div class="alert alert-danger text-center">🔒 مرتبط بجهاز آخر!</div>
-                            <form action="/activate/<%= course.id %>" method="POST">
-                                <input type="text" name="activationCode" class="form-control mb-2" placeholder="كود التفعيل" required>
-                                <button type="submit" class="btn btn-primary w-100">تفعيل على جهازي</button>
-                            </form>
-                            
-                        <% } else { %>
-                            <img src="<%=
+</body>
+</html>

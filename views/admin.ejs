@@ -32,20 +32,42 @@
 
     <div class="main-content">
         <div class="card-custom" id="courses-section">
-            <h3 class="text-primary mb-4">إضافة كورس جديد</h3>
-            <form action="/admin/add-course" method="POST" class="row g-3 mb-4">
-                <div class="col-md-4"><input type="text" name="title" class="form-control" placeholder="اسم الكورس" required></div>
-                <div class="col-md-4"><input type="text" name="vid" class="form-control" placeholder="YouTube ID" required></div>
-                <div class="col-md-4"><input type="text" name="thumb" class="form-control" placeholder="رابط الغلاف"></div>
-                <div class="col-12"><button type="submit" class="btn btn-primary w-100">نشر الكورس</button></div>
-            </form>
-            <table class="table table-dark">
-                <thead><tr><th>الغلاف</th><th>العنوان</th><th>حذف</th></tr></thead>
+            <div class="row">
+                <div class="col-md-5">
+                    <h4 class="text-primary mb-3">إضافة كورس جديد</h4>
+                    <form action="/admin/add-course" method="POST" class="row g-3 mb-4">
+                        <div class="col-12"><input type="text" name="title" class="form-control" placeholder="اسم الكورس (مثال: فيزياء الباب الأول)" required></div>
+                        <div class="col-12"><input type="text" name="thumb" class="form-control" placeholder="رابط الغلاف"></div>
+                        <div class="col-12"><button type="submit" class="btn btn-primary w-100">إنشاء الكورس</button></div>
+                    </form>
+                </div>
+
+                <div class="col-md-7">
+                    <h4 class="text-success mb-3">إضافة محاضرة لكورس موجود</h4>
+                    <form action="/admin/add-lecture" method="POST" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <select name="courseId" class="form-control" required>
+                                <option value="">-- اختر الكورس --</option>
+                                <% courses.forEach(c => { %>
+                                    <option value="<%= c._id %>"><%= c.title %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="col-md-4"><input type="text" name="title" class="form-control" placeholder="عنوان المحاضرة" required></div>
+                        <div class="col-md-4"><input type="text" name="vid" class="form-control" placeholder="YouTube ID" required></div>
+                        <div class="col-12"><button type="submit" class="btn btn-success w-100">إضافة المحاضرة</button></div>
+                    </form>
+                </div>
+            </div>
+
+            <table class="table table-dark mt-4">
+                <thead><tr><th>الغلاف</th><th>العنوان</th><th>عدد المحاضرات</th><th>حذف</th></tr></thead>
                 <tbody>
                     <% courses.forEach(c => { %>
                     <tr>
                         <td><img src="<%= c.thumb %>" width="50" class="rounded"></td>
                         <td><%= c.title %></td>
+                        <td><%= c.lectures ? c.lectures.length : 0 %> محاضرات</td>
                         <td><a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-danger">حذف</a></td>
                     </tr>
                     <% }) %>
@@ -54,17 +76,11 @@
         </div>
 
         <div class="card-custom" id="students-section">
-            <h3 class="text-info mb-4">قائمة الطلاب (البيانات السرية)</h3>
+            <h3 class="text-info mb-4">قائمة الطلاب</h3>
             <div class="table-responsive">
                 <table class="table table-dark table-hover align-middle">
                     <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>الإيميل</th>
-                            <th>الباسورد</th>
-                            <th>الكورسات</th>
-                            <th>التحكم</th>
-                        </tr>
+                        <tr><th>الاسم</th><th>الإيميل</th><th>الباسورد</th><th>الكورسات</th><th>التحكم</th></tr>
                     </thead>
                     <tbody>
                         <% students.forEach(s => { %>
@@ -75,7 +91,6 @@
                             <td><span class="active-badge"><%= s.activeCount %></span></td>
                             <td>
                                 <a href="/admin/reset-student/<%= s._id %>" class="btn btn-sm btn-warning">تصفير</a>
-                                <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger ms-1">حذف</a>
                             </td>
                         </tr>
                         <% }) %>
@@ -88,7 +103,7 @@
             <div class="d-flex justify-content-between mb-4">
                 <h3 class="text-warning">الأكواد (<%= codes.length %>)</h3>
                 <div>
-                    <a href="/admin/generate-keys" class="btn btn-success btn-sm">توليد أكواد</a>
+                    <a href="/admin/generate-keys" class="btn btn-success btn-sm">توليد 20 كود</a>
                     <a href="/admin/delete-all-codes" class="btn btn-danger btn-sm" onclick="return confirm('مسح الكل؟')">مسح الكل</a>
                 </div>
             </div>
@@ -96,7 +111,7 @@
                 <% codes.forEach(c => { %>
                 <div class="col-md-4 mb-2">
                     <div class="p-2 border rounded d-flex justify-content-between align-items-center bg-dark">
-                        <span><%= c.code %></span>
+                        <span class="<%= c.used ? 'text-danger text-decoration-line-through' : 'text-success' %>"><%= c.code %></span>
                         <i class="fas fa-copy text-primary" style="cursor:pointer" onclick="copy(this, '<%= c.code %>')"></i>
                     </div>
                 </div>

@@ -3,227 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - منصة مستر ميدو</title>
+    <title>تسجيل الدخول</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .login-container {
-            width: 100%;
-            max-width: 450px;
-            animation: slideUp 0.6s ease;
-        }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .login-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 25px;
-            padding: 45px 35px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-        
-        .login-header .icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #4361ee, #f72585);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2rem;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(67, 97, 238, 0.2); }
-        }
-        
-        .login-header h2 {
-            color: white;
-            font-weight: 900;
-            font-size: 1.8rem;
-            background: linear-gradient(45deg, #fff, #4361ee);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        
-        .form-control {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 15px;
-            font-size: 1rem;
-            font-family: 'Cairo', sans-serif;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: #4361ee;
-            box-shadow: 0 0 25px rgba(67, 97, 238, 0.3);
-            color: white;
-            outline: none;
-        }
-        
-        .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        .btn-login {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #4361ee, #3f37c9);
-            border: none;
-            border-radius: 15px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            font-family: 'Cairo', sans-serif;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-        
-        .btn-login:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(67, 97, 238, 0.4);
-        }
-        
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        
-        .alert {
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            animation: shake 0.5s ease;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        
-        .alert-success {
-            background: rgba(0, 176, 155, 0.2);
-            border: 1px solid #00b09b;
-            color: #00b09b;
-        }
-        
-        .alert-danger {
-            background: rgba(247, 37, 133, 0.2);
-            border: 1px solid #f72585;
-            color: #f72585;
-        }
-        
-        .footer-link {
-            text-align: center;
-            margin-top: 25px;
-            color: rgba(255, 255, 255, 0.6);
-            font-weight: 600;
-        }
-        
-        .footer-link a {
-            color: #4361ee;
-            text-decoration: none;
-            font-weight: 700;
-            transition: all 0.3s ease;
-        }
-        
-        .footer-link a:hover {
-            color: #f72585;
-            text-decoration: underline;
-        }
+        body { background: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
     </style>
-</    <div class="login-container">
-        <div class="login-card">
-head>
+</head>
 <body>
-            <div class="login-header">
-                <div class="icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <h2>منصة مستر ميدو</h2>
+    <div class="card p-4">
+        <h3 class="text-center text-primary fw-bold mb-4">منصة مستر ميدو</h3>
+        
+        <% if (success) { %><div class="alert alert-success text-center"><%= success %></div><% } %>
+        <% if (error) { %><div class="alert alert-danger text-center"><%= error %></div><% } %>
+        
+        <form action="/login" method="POST">
+            <div class="mb-3">
+                <label>البريد الإلكتروني</label>
+                <input type="email" name="email" class="form-control" required>
             </div>
-            
-            <% if (success) { %>
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> <%= success %>
+            <div class="mb-4">
+                <label>كلمة السر</label>
+                <input type="password" name="password" class="form-control" required>
             </div>
-            <% } %>
-            
-            <% if (error) { %>
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i> <%= error %>
-            </div>
-            <% } %>
-            
-            <form action="/login" method="POST">
-                <div class="form-group">
-                    <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
-                    <input type="email" name="email" class="form-control" placeholder="أدخل بريدك الإلكتروني" required>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> كلمة السر</label>
-                    <input type="password" name="password" class="form-control" placeholder="أدخل كلمة السر" required>
-                </div>
-                
-                <button type="submit" class="btn-login">
-                    <i class="fas fa-sign-in-alt"></i> تسجيل دخول
-                </button>
-            </form>
-            
-            <div class="footer-link">
-                ليس لديك حساب؟ <a href="/signup">سجل الآن</a>
-            </div>
-        </div>
+            <button type="submit" class="btn btn-primary w-100">دخول</button>
+        </form>
+        
+        <p class="text-center mt-4">ليس لديك حساب؟ <a href="/signup">سجل الآن</a></p>
     </div>
 </body>
 </html>

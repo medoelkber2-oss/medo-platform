@@ -6,7 +6,7 @@ const app = express();
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true });
 app.use(express.json());
 
 const mongoURI = process.env.MONGO_URI || "mongodb+srv://medoelkber2_db_user:I7vueTTD6aU9xB4C@cluster0.dbtgo0g.mongodb.net/myPlatform?retryWrites=true&w=majority";
@@ -161,8 +161,8 @@ app.get('/admin', async (req, res) => {
         students: students, 
         codes: codes, 
         courses: courses,
-        error: req.query.error || null, 
-        success: req.query.success || null 
+        error: null, 
+        success: null 
     });
 });
 
@@ -173,27 +173,27 @@ app.post('/admin/add-course', async (req, res) => {
     const newId = "c" + (courses.length + 1);
     courses.push({ id: newId, title: title, vid: vid, thumb: thumb });
     
-    res.redirect('/admin?success=تم+إضافة+الكورس');
+    res.redirect('/admin');
 });
 
 app.post('/admin/add-code', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
     await Code.create({ code: req.body.newCode.trim() });
-    res.redirect('/admin?success=تم+إضافة+الكود');
+    res.redirect('/admin');
 });
 
 app.get('/admin/delete-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     await User.findByIdAndDelete(req.params.id);
-    res.redirect('/admin?success=تم+حذف+الطالب');
+    res.redirect('/admin');
 });
 
 app.get('/admin/delete-all-codes', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
-    const result = await Code.deleteMany({});
-    res.redirect('/admin?success=تم+مسح+' + result.deletedCount + '+كود');
+    await Code.deleteMany({});
+    res.redirect('/admin');
 });
 
 app.get('/admin/generate-keys', async (req, res) => {
@@ -203,14 +203,14 @@ app.get('/admin/generate-keys', async (req, res) => {
         let codeVal = "MEDO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
         await Code.create({ code: codeVal, used: false });
     }
-    res.redirect('/admin?success=تم+توليد+20+كود+جديد');
+    res.redirect('/admin');
 });
 
 app.get('/admin/delete-code/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     
     await Code.findByIdAndDelete(req.params.id);
-    res.redirect('/admin?success=تم+حذف+الكود');
+    res.redirect('/admin');
 });
 
 app.get('/logout', (req, res) => {

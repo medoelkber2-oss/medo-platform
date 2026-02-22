@@ -14,6 +14,7 @@
     .code-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .code-text { font-family: monospace; font-weight: bold; }
     .admin-badge { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; }
+    .lecture-item { background: rgba(0,0,0,0.2); padding: 8px; margin-bottom: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -70,32 +71,40 @@
     </div>
 
     <div class="card-custom" id="courses">
-      <h5>الكورسات</h5>
-      <div class="table-responsive">
-        <table class="table table-dark table-hover text-center">
-          <thead>
-            <tr>
-              <th>العنوان</th>
-              <th>المحاضرات</th>
-              <th>التحكم</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (courses && courses.length > 0) { %>
-              <% courses.forEach(c => { %>
-                <tr>
-                  <td><%= c.title %></td>
-                  <td><%= c.lectures ? c.lectures.length : 0 %></td>
-                  <td>
-                    <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكورس؟')">حذف</a>
-                  </td>
-                </tr>
-              <% }) %>
-            <% } else { %>
-              <tr><td colspan="3" class="text-center">لا توجد كورسات</td></tr>
-            <% } %>
-          </tbody>
-        </table>
+      <h5>الكورسات والمحاضرات</h5>
+      <div class="row">
+        <% if (courses && courses.length > 0) { %>
+          <% courses.forEach((c, courseIndex) => { %>
+            <div class="col-md-6 mb-3">
+              <div class="code-box" style="display: block;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold"><%= c.title %></span>
+                  <div>
+                    <button class="btn btn-sm btn-outline-info me-1" onclick="showEditCourseForm('<%= c._id %>', '<%= c.title %>', '<%= c.thumb || '' %>')">✏️ تعديل</button>
+                    <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الكورس؟')">🗑️</a>
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <% if (c.lectures && c.lectures.length > 0) { %>
+                    <% c.lectures.forEach((lec, lecIndex) => { %>
+                      <div class="lecture-item">
+                        <span class="small"><%= lecIndex + 1 %>. <%= lec.title %></span>
+                        <div>
+                          <button class="btn btn-sm btn-outline-primary" onclick="showEditLecForm('<%= c._id %>', '<%= lecIndex %>', '<%= lec.title %>', '<%= lec.vid %>')">✏️</button>
+                          <a href="/admin/delete-lecture/<%= c._id %>/<%= lecIndex %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف المحاضرة؟')">🗑️</a>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <p class="small text-secondary">لا توجد محاضرات</p>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="col-12 text-center">لا توجد كورسات</div>
+        <% } %>
       </div>
     </div>
 
@@ -182,6 +191,7 @@
     </div>
   </div>
 
+  <!-- مودال إضافة أدمن (بالاسم والإيميل فقط) -->
   <div class="modal fade" id="addAdminModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content bg-dark text-white">
@@ -191,12 +201,53 @@
           </div>
           <div class="modal-body">
             <input type="text" name="username" class="form-control mb-2 bg-dark text-white" placeholder="اسم الأدمن" required>
-            <input type="email" name="email" class="form-control mb-2 bg-dark text-white" placeholder="الإيميل" required>
-            <input type="password" name="password" class="form-control bg-dark text-white" placeholder="كلمة المرور" required>
+            <input type="email" name="email" class="form-control bg-dark text-white" placeholder="الإيميل" required>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
             <button type="submit" class="btn btn-primary">إضافة</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال تعديل الكورس -->
+  <div class="modal fade" id="editCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-white">
+        <form id="editCourseForm" method="POST">
+          <div class="modal-header">
+            <h5>تعديل الكورس</h5>
+          </div>
+          <div class="modal-body">
+            <input type="text" name="title" id="editCourseTitle" class="form-control mb-2 bg-dark text-white" placeholder="عنوان الكورس" required>
+            <input type="text" name="thumb" id="editCourseThumb" class="form-control bg-dark text-white" placeholder="رابط صورة الغلاف">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-primary">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال تعديل المحاضرة -->
+  <div class="modal fade" id="editLecModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-white">
+        <form id="editLecForm" method="POST">
+          <div class="modal-header">
+            <h5>تعديل المحاضرة</h5>
+          </div>
+          <div class="modal-body">
+            <input type="text" name="title" id="editLecTitle" class="form-control mb-2 bg-dark text-white" placeholder="عنوان المحاضرة" required>
+            <input type="text" name="vid" id="editLecVid" class="form-control bg-dark text-white" placeholder="YouTube ID" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-primary">حفظ</button>
           </div>
         </form>
       </div>
@@ -211,6 +262,20 @@
       }, function(err) {
         console.error('خطأ في النسخ:', err);
       });
+    }
+
+    function showEditCourseForm(id, title, thumb) {
+      document.getElementById('editCourseTitle').value = title;
+      document.getElementById('editCourseThumb').value = thumb;
+      document.getElementById('editCourseForm').action = '/admin/edit-course/' + id;
+      new bootstrap.Modal(document.getElementById('editCourseModal')).show();
+    }
+
+    function showEditLecForm(courseId, lecIndex, title, vid) {
+      document.getElementById('editLecTitle').value = title;
+      document.getElementById('editLecVid').value = vid;
+      document.getElementById('editLecForm').action = '/admin/edit-lecture/' + courseId + '/' + lecIndex;
+      new bootstrap.Modal(document.getElementById('editLecModal')).show();
     }
   </script>
 </body>

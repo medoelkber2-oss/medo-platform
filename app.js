@@ -373,5 +373,11 @@ app.get('/admin/delete-all-codes', async (req, res) => {
 
 app.post('/admin/add-admin', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
-  const { username, email } = req.body;
-  const
+  const { username, email, password } = req.body;
+  await User.create({ username, email, password, isAdmin: true });
+  logActivity('إضافة أدمن', `تم إضافة أدمن جديد: ${email}`, req.session.userId, req.session.username);
+  res.redirect('/admin');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

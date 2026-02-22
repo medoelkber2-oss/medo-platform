@@ -15,6 +15,7 @@
     .code-text { font-family: monospace; font-weight: bold; }
     .admin-badge { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; }
     .lecture-item { background: rgba(0,0,0,0.2); padding: 8px; margin-bottom: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+    .password-text { font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -74,7 +75,7 @@
       <h5>الكورسات والمحاضرات</h5>
       <div class="row">
         <% if (courses && courses.length > 0) { %>
-          <% courses.forEach((c, courseIndex) => { %>
+          <% courses.forEach((c) => { %>
             <div class="col-md-6 mb-3">
               <div class="code-box" style="display: block;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -116,15 +117,25 @@
             <tr>
               <th>الاسم</th>
               <th>الإيميل</th>
+              <th>كلمة المرور</th>
+              <th>عدد الكورسات</th>
               <th>التحكم</th>
             </tr>
           </thead>
           <tbody>
             <% if (students && students.length > 0) { %>
-              <% students.forEach(s => { %>
+              <% students.forEach(s => { 
+                let coursesCount = 0;
+                try {
+                  const coursesObj = JSON.parse(s.courses || '{}');
+                  coursesCount = Object.keys(coursesObj).length;
+                } catch(e) { coursesCount = 0; }
+              %>
                 <tr>
                   <td><%= s.username %></td>
                   <td><%= s.email %></td>
+                  <td><span class="password-text"><%= s.password %></span></td>
+                  <td><span class="badge bg-primary"><%= coursesCount %> كورس</span></td>
                   <td>
                     <a href="/admin/reset-student/<%= s._id %>" class="btn btn-sm btn-warning" onclick="return confirm('تصفير؟')">تصفير</a>
                     <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')">حذف</a>
@@ -132,7 +143,7 @@
                 </tr>
               <% }) %>
             <% } else { %>
-              <tr><td colspan="3" class="text-center">لا يوجد طلاب</td></tr>
+              <tr><td colspan="5" class="text-center">لا يوجد طلاب</td></tr>
             <% } %>
           </tbody>
         </table>
@@ -177,6 +188,7 @@
                 <div>
                   <span class="admin-badge">👑 <%= a.username %></span>
                   <p class="small text-secondary mt-1 mb-0"><%= a.email %></p>
+                  <p class="small text-warning mt-1 mb-0">كلمة المرور: <span class="password-text"><%= a.password %></span></p>
                 </div>
                 <% if (String(a._id) !== 'admin-main') { %>
                   <a href="/admin/delete-admin/<%= a._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
@@ -202,6 +214,7 @@
           <div class="modal-body">
             <input type="text" name="username" class="form-control mb-2 bg-dark text-white" placeholder="اسم الأدمن" required>
             <input type="email" name="email" class="form-control bg-dark text-white" placeholder="الإيميل" required>
+            <small class="text-warning">كلمة المرور الافتراضية: admin123</small>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
@@ -268,15 +281,4 @@
       document.getElementById('editCourseTitle').value = title;
       document.getElementById('editCourseThumb').value = thumb;
       document.getElementById('editCourseForm').action = '/admin/edit-course/' + id;
-      new bootstrap.Modal(document.getElementById('editCourseModal')).show();
-    }
-
-    function showEditLecForm(courseId, lecIndex, title, vid) {
-      document.getElementById('editLecTitle').value = title;
-      document.getElementById('editLecVid').value = vid;
-      document.getElementById('editLecForm').action = '/admin/edit-lecture/' + courseId + '/' + lecIndex;
-      new bootstrap.Modal(document.getElementById('editLecModal')).show();
-    }
-  </script>
-</body>
-</html>
+      new bootstrap.Modal(document.getElementById('edit

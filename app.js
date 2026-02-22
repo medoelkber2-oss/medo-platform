@@ -20,7 +20,9 @@ const User = mongoose.model('User', new mongoose.Schema({
     password: String, 
     courses: { type: String, default: '{}' },
     resetToken: String,
-    resetTokenExpiry: Date
+    resetTokenExpiry: Date,
+    isAdmin: { type: Boolean, default: false },
+    adminCreatedAt: Date
 }));
 
 const Code = mongoose.model('Code', new mongoose.Schema({ 
@@ -34,7 +36,32 @@ const Course = mongoose.model('Course', new mongoose.Schema({
     lectures: [{ title: String, vid: String }] 
 }));
 
+// موديل سجل الأنشطة
+const ActivityLog = mongoose.model('ActivityLog', new mongoose.Schema({
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    adminName: String,
+    action: String,
+    target: String,
+    details: String,
+    ip: String,
+    createdAt: { type: Date, default: Date.now }
+}));
+
 app.use(session({ secret: 'medo-platform-2026', resave: false, saveUninitialized: false }));
+
+// Middleware لتسجيل الأنشطة
+const logActivity = async (req, action, target, details) => {
+    if (req.session.isAdmin) {
+        await ActivityLog.create({
+            adminId: req.session.userId,
+            adminName: 'Admin',
+            action: action,
+            target: target,
+            details: details,
+            ip: req.ip || req.connection.remoteAddress
+        });
+    }
+};
 
 // ================= المسارات الأساسية (User Routes) =================
 
@@ -46,11 +73,17 @@ app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (email === 'admin@medo.com' && password === 'admin123') {
         req.session.isAdmin = true;
+        req.session.userId = 'admin-main';
+        await logActivity(req, 'تسجيل دخول', 'النظام', 'دخول الأدمن الرئيسي');
         return res.redirect('/admin');
     }
     const user = await User.findOne({ email, password });
     if (user) {
         req.session.userId = user._id;
+        if (user.isAdmin) {
+            req.session.isAdmin = true;
+            await logActivity(req, 'تسجيل دخول', 'النظام', 'دخول أدمن');
+        }
         res.redirect('/home');
     } else {
         res.render('login', { error: 'بيانات الدخول خاطئة', success: '' });
@@ -65,6 +98,7 @@ app.post('/signup', async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.render('signup', { error: 'الإيميل مسجل مسبقاً', success: '' });
         await User.create({ username, email, password });
+        await logActivity(req, 'تسجيل مستخدم جديد', 'المستخدمين', `مستخدم جديد: ${email}`);
         res.render('login', { error: '', success: 'تم إنشاء الحساب بنجاح، سجل دخولك الآن' });
     } catch (e) { res.render('signup', { error: 'حدث خطأ في التسجيل', success: '' }); }
 });
@@ -92,6 +126,7 @@ app.post('/activate/:courseId', async (req, res) => {
         await User.findByIdAndUpdate(user._id, { courses: JSON.stringify(enrolled) });
         codeDoc.used = true;
         await codeDoc.save();
+        await logActivity(req, 'تفعيل كورس', 'الكورسات', `تفعيل كورس برقم: ${activationCode}`);
         res.redirect('/home');
     } else {
         res.redirect('/home?error=invalid_code');
@@ -105,7 +140,13 @@ app.get('/video/:id', async (req, res) => {
     res.render('video', { course, lecIndex });
 });
 
-app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
+app.get('/logout', (req, res) => { 
+    if (req.session.isAdmin) {
+        logActivity(req, 'تسجيل خروج', 'النظام', 'خروج من النظام');
+    }
+    req.session.destroy(); 
+    res.redirect('/login'); 
+});
 
 // ================= المسار: الملف الشخصي =================
 
@@ -129,6 +170,7 @@ app.post('/profile/update', async (req, res) => {
         if (username !== user.username) {
             await User.findByIdAndUpdate(user._id, { username });
             success = 'تم تحديث اسم المستخدم';
+            await logActivity(req, 'تعديل الملف الشخصي', 'المستخدمين', `تغيير الاسم من ${user.username} إلى ${username}`);
         }
         if (email !== user.email) {
             const existingEmail = await User.findOne({ email });
@@ -138,12 +180,14 @@ app.post('/profile/update', async (req, res) => {
                 await User.findByIdAndUpdate(user._id, { email });
                 success = success ? success + ' و ' : '';
                 success += 'تم تحديث الإيميل';
+                await logActivity(req, 'تعديل الملف الشخصي', 'المستخدمين', `تغيير الإيميل من ${user.email} إلى ${email}`);
             }
         }
         if (newPassword && currentPassword === user.password) {
             await User.findByIdAndUpdate(user._id, { password: newPassword });
             success = success ? success + ' و ' : '';
             success += 'تم تحديث كلمة المرور';
+            await logActivity(req, 'تغيير كلمة المرور', 'المستخدمين', 'تغيير كلمة المرور');
         }
     }
     
@@ -236,7 +280,9 @@ app.post('/reset-password/:token', async (req, res) => {
 app.get('/admin/reset-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     try {
+        const student = await User.findById(req.params.id);
         await User.findByIdAndUpdate(req.params.id, { courses: '{}' });
+        await logActivity(req, 'تصفير حساب', 'الطلاب', `تصفير حساب: ${student.email}`);
         res.redirect('/admin#students-section');
     } catch (err) {
         res.send("خطأ في تصفير الحساب");
@@ -246,7 +292,9 @@ app.get('/admin/reset-student/:id', async (req, res) => {
 app.get('/admin/delete-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     try {
+        const student = await User.findById(req.params.id);
         await User.findByIdAndDelete(req.params.id);
+        await logActivity(req, 'حذف طالب', 'الطلاب', `حذف طالب: ${student.email}`);
         res.redirect('/admin#students-section');
     } catch (err) {
         res.send("خطأ في حذف الحساب");
@@ -269,6 +317,7 @@ app.post('/admin/edit-lecture/:courseId/:lecIndex', async (req, res) => {
     if (course) {
         course.lectures[lecIndex] = { title, vid };
         await course.save();
+        await logActivity(req, 'تعديل محاضرة', 'الكورسات', `تعديل محاضرة في كورس: ${course.title}`);
     }
     res.redirect('/admin');
 });
@@ -278,8 +327,10 @@ app.get('/admin/delete-lecture/:courseId/:lecIndex', async (req, res) => {
     const { courseId, lecIndex } = req.params;
     const course = await Course.findById(courseId);
     if (course) {
+        const lectureTitle = course.lectures[lecIndex]?.title || 'محاضرة';
         course.lectures.splice(lecIndex, 1);
         await course.save();
+        await logActivity(req, 'حذف محاضرة', 'الكورسات', `حذف محاضرة: ${lectureTitle} من كورس: ${course.title}`);
     }
     res.redirect('/admin');
 });
@@ -289,20 +340,25 @@ app.get('/admin', async (req, res) => {
     const students = await User.find({});
     const codes = await Code.find({});
     const dbCourses = await Course.find({});
-    res.render('admin', { students, codes, courses: dbCourses });
+    const admins = await User.find({ isAdmin: true });
+    const activities = await ActivityLog.find({}).sort({ createdAt: -1 }).limit(50);
+    res.render('admin', { students, codes, courses: dbCourses, admins, activities });
 });
 
 app.post('/admin/add-course', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { title, thumb } = req.body;
     await Course.create({ title, thumb: thumb || 'https://via.placeholder.com/300x180', lectures: [] });
+    await logActivity(req, 'إنشاء كورس', 'الكورسات', `إنشاء كورس جديد: ${title}`);
     res.redirect('/admin');
 });
 
 app.post('/admin/add-lecture', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { courseId, title, vid } = req.body;
+    const course = await Course.findById(courseId);
     await Course.findByIdAndUpdate(courseId, { $push: { lectures: { title, vid } } });
+    await logActivity(req, 'إضافة محاضرة', 'الكورسات', `إضافة محاضرة: ${title} إلى كورس: ${course.title}`);
     res.redirect('/admin');
 });
 
@@ -315,41 +371,34 @@ app.get('/admin/course-data/:id', async (req, res) => {
 app.post('/admin/edit-course/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { title, thumb } = req.body;
+    const course = await Course.findById(req.params.id);
     await Course.findByIdAndUpdate(req.params.id, { title, thumb });
+    await logActivity(req, 'تعديل كورس', 'الكورسات', `تعديل كورس: ${course.title} → ${title}`);
     res.redirect('/admin');
 });
 
 app.get('/admin/delete-course/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
+    const course = await Course.findById(req.params.id);
     await Course.findByIdAndDelete(req.params.id);
+    await logActivity(req, 'حذف كورس', 'الكورسات', `حذف كورس: ${course.title}`);
     res.redirect('/admin');
 });
 
 app.get('/admin/generate-keys', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
-    for (let i = 0; i < 20; i++) {
+    const count = 20;
+    for (let i = 0; i < count; i++) {
         await Code.create({ code: "MEDO-" + Math.random().toString(36).substring(2, 8).toUpperCase() });
     }
+    await logActivity(req, 'توليد أكواد', 'الأكواد', `توليد ${count} كود تفعيل جديد`);
     res.redirect('/admin');
 });
 
-// مسار حذف كود واحد
 app.get('/admin/delete-code/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     try {
+        const code = await Code.findById(req.params.id);
         await Code.findByIdAndDelete(req.params.id);
-        res.redirect('/admin#codes-section');
-    } catch (err) {
-        res.send("خطأ في حذف الكود");
-    }
-});
-
-// مسار حذف كل الأكواد
-app.get('/admin/delete-all-codes', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    await Code.deleteMany({});
-    res.redirect('/admin');
-});
-
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+        await logActivity(req, 'حذف كود', 'الأكواد', `حذف كود: ${code.code}`);
+        res

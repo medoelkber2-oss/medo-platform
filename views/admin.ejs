@@ -12,68 +12,21 @@
         .table { color: white; vertical-align: middle; }
         .dropdown-menu-dark { background-color: #1e293b; border: 1px solid rgba(255,255,255,0.1); }
         .badge { font-size: 0.85rem; }
-        .code-box {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        .code-text {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
+        .code-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .code-text { font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.9rem; }
         .code-actions { display: flex; gap: 5px; }
-        .btn-copy {
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid #6366f1;
-            color: #6366f1;
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+        .btn-copy { background: rgba(99, 102, 241, 0.2); border: 1px solid #6366f1; color: #6366f1; padding: 4px 8px; border-radius: 5px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
         .btn-copy:hover { background: #6366f1; color: white; }
-        .btn-delete {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid #ef4444;
-            color: #ef4444;
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-        }
+        .btn-delete { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; padding: 4px 8px; border-radius: 5px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; text-decoration: none; }
         .btn-delete:hover { background: #ef4444; color: white; }
-        .activity-item {
-            background: rgba(255,255,255,0.03);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-right: 4px solid #6366f1;
-        }
+        .activity-item { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; margin-bottom: 10px; border-right: 4px solid #6366f1; }
         .activity-time { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
         .activity-action { font-weight: bold; color: #6366f1; }
         .activity-details { font-size: 0.9rem; margin-top: 5px; }
-        .admin-badge {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .admin-badge { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4 text-center text-md-start flex-wrap gap-3">
             <h2 class="text-primary fw-bold">لوحة تحكم مستر ميدو 🛠️</h2>
@@ -261,7 +214,6 @@
             </div>
         </div>
 
-        <!-- قسم إدارة الأدمنز -->
         <div class="card-custom mt-4 shadow" id="admins-section">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h5><i class="fas fa-users-cog me-2 text-primary"></i>إدارة الأدمنز</h5>
@@ -299,7 +251,6 @@
             </div>
         </div>
 
-        <!-- قسم سجل الأنشطة -->
         <div class="card-custom mt-4 shadow" id="activity-section">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h5><i class="fas fa-history me-2 text-warning"></i>سجل الأنشطة</h5>
@@ -333,4 +284,102 @@
                         <i class="fas fa-history fa-2x mb-2"></i>
                         <p class="mb-0">لا يوجد أنشطة مسجلة</p>
                     </div>
-                <% }
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editCourseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <form id="editCourseForm" method="POST">
+                    <div class="modal-header border-secondary"><h5>تعديل بيانات الكورس</h5></div>
+                    <div class="modal-body">
+                        <label class="mb-1 small">عنوان الكورس</label>
+                        <input type="text" name="title" id="editTitle" class="form-control mb-3 bg-dark text-white border-secondary" required>
+                        <label class="mb-1 small">رابط صورة الغلاف</label>
+                        <input type="text" name="thumb" id="editThumb" class="form-control bg-dark text-white border-secondary">
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary btn-sm">حفظ التغييرات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editLecModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-info">
+                <form id="editLecForm" method="POST">
+                    <div class="modal-header border-info"><h5>تعديل المحاضرة</h5></div>
+                    <div class="modal-body">
+                        <label class="small text-info mb-1">اسم المحاضرة</label>
+                        <input type="text" name="title" id="editLecTitle" class="form-control mb-3 bg-dark text-white border-secondary" required>
+                        <label class="small text-info mb-1">YouTube Video ID</label>
+                        <input type="text" name="vid" id="editLecVid" class="form-control bg-dark text-white border-secondary" required>
+                    </div>
+                    <div class="modal-footer border-info">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-info btn-sm">تحديث المحاضرة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addAdminModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-primary">
+                <form action="/admin/add-admin" method="POST">
+                    <div class="modal-header border-primary">
+                        <h5><i class="fas fa-user-plus me-2"></i>إضافة أدمن جديد</h5>
+                    </div>
+                    <div class="modal-body">
+                        <label class="mb-1 small">اسم الأدمن</label>
+                        <input type="text" name="username" class="form-control mb-3 bg-dark text-white border-secondary" placeholder="اسم الأدمن" required>
+                        <label class="mb-1 small">البريد الإلكتروني</label>
+                        <input type="email" name="email" class="form-control mb-3 bg-dark text-white border-secondary" placeholder="email@example.com" required>
+                        <label class="mb-1 small">كلمة المرور</label>
+                        <input type="password" name="password" class="form-control bg-dark text-white border-secondary" placeholder="كلمة مرور قوية" required>
+                    </div>
+                    <div class="modal-footer border-primary">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary btn-sm">إضافة الأدمن</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function openEditCourseModal(id) {
+            const res = await fetch('/admin/course-data/' + id);
+            const course = await res.json();
+            document.getElementById('editTitle').value = course.title;
+            document.getElementById('editThumb').value = course.thumb;
+            document.getElementById('editCourseForm').action = '/admin/edit-course/' + id;
+            new bootstrap.Modal(document.getElementById('editCourseModal')).show();
+        }
+
+        async function openEditLecModal(courseId, lecIndex) {
+            const res = await fetch('/admin/lecture-data/' + courseId + '/' + lecIndex);
+            const lecture = await res.json();
+            document.getElementById('editLecTitle').value = lecture.title;
+            document.getElementById('editLecVid').value = lecture.vid;
+            document.getElementById('editLecForm').action = '/admin/edit-lecture/' + courseId + '/' + lecIndex;
+            new bootstrap.Modal(document.getElementById('editLecModal')).show();
+        }
+
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(function() {
+                alert('تم نسخ الكود: ' + code);
+            }, function(err) {
+                console.error('فشل النسخ: ', err);
+            });
+        }
+    </script>
+</body>
+</html>

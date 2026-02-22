@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
     * { font-family: 'Cairo', sans-serif; }
     body { background: #0f172a; color: white; padding: 20px; }
     
@@ -19,7 +20,6 @@
     }
     
     .mobile-sidebar {
-      display: none;
       position: fixed;
       top: 0;
       right: -280px;
@@ -47,37 +47,13 @@
     .table { color: white; vertical-align: middle; }
     .code-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .code-text { font-family: monospace; font-weight: bold; }
-    .admin-badge { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; }
-    .lecture-item { background: rgba(0,0,0,0.2); padding: 8px; margin-bottom: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
-    .password-text { font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
-    
     .stat-card { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 15px; }
     .stat-card h3 { font-size: 2rem; margin: 0; }
-    .stat-card p { margin: 0; opacity: 0.8; }
     .stat-card.green { background: linear-gradient(135deg, #10b981, #059669); }
     .stat-card.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
     .stat-card.red { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    
-    .notification-item {
-      background: rgba(255,255,255,0.05);
-      border-right: 4px solid #6366f1;
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 5px;
-    }
-    .notification-item.new-user { border-color: #10b981; }
-    .notification-item.code-used { border-color: #f59e0b; }
-    .notification-item.new-course { border-color: #6366f1; }
-    .notification-item.new-lecture { border-color: #8b5cf6; }
-    
-    .activity-item {
-      background: rgba(0,0,0,0.2);
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 5px;
-      font-size: 0.9rem;
-    }
-    .activity-time { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+    .lecture-item { background: rgba(0,0,0,0.2); padding: 8px; margin-bottom: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+    .password-text { font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -89,10 +65,6 @@
   <a href="#courses" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">📚 الكورسات</a>
   <a href="#students" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">👥 الطلاب</a>
   <a href="#codes" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">🔑 الأكواد</a>
-  <a href="#admins" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">👑 الأدمنز</a>
-  <a href="#notifications" class="btn btn-outline-primary w-100 mb-2" onclick="toggleSidebar()">🔔 الإشعارات</a>
-  <a href="#activity" class="btn btn-outline-warning w-100 mb-2" onclick="toggleSidebar()">📋 سجل الأنشطة</a>
-  <a href="#charts" class="btn btn-outline-info w-100 mb-2" onclick="toggleSidebar()">📈 الرسوم البيانية</a>
   <hr>
   <a href="/logout" class="btn btn-danger w-100">🚪 خروج</a>
 </div>
@@ -104,88 +76,18 @@
       <h2 class="text-primary mb-0">لوحة تحكم مستر ميدو</h2>
     </div>
     <div>
-      <span class="badge bg-danger"><%= notifications ? notifications.length : 0 %> إشعار</span>
+      <span class="badge bg-danger"><%= (typeof notifications !== 'undefined' && notifications) ? notifications.length : 0 %> إشعار</span>
       <a href="/logout" class="btn btn-danger btn-sm">تسجيل خروج</a>
     </div>
-  </div>
-
-  <div class="mb-4 d-none d-md-flex flex-wrap gap-2">
-    <a href="#stats" class="btn btn-outline-light btn-sm">📊 الإحصائيات</a>
-    <a href="#courses" class="btn btn-outline-light btn-sm">📚 الكورسات</a>
-    <a href="#students" class="btn btn-outline-light btn-sm">👥 الطلاب</a>
-    <a href="#codes" class="btn btn-outline-light btn-sm">🔑 الأكواد</a>
-    <a href="#admins" class="btn btn-outline-primary btn-sm">👑 الأدمنز</a>
-    <a href="#notifications" class="btn btn-outline-primary btn-sm">🔔 الإشعارات</a>
-    <a href="#activity" class="btn btn-outline-warning btn-sm">📋 سجل الأنشطة</a>
-    <a href="#charts" class="btn btn-outline-info btn-sm">📈 الرسوم البيانية</a>
   </div>
 
   <div class="card-custom" id="stats">
     <h4>📊 الإحصائيات</h4>
     <div class="row">
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <h3><%= stats.totalStudents %></h3>
-          <p>👥 الطلاب الكلي</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card green">
-          <h3><%= stats.activeStudents %></h3>
-          <p>✅ الطلاب النشطون</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card orange">
-          <h3><%= stats.totalCourses %></h3>
-          <p>📚 الكورسات</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card red">
-          <h3><%= stats.unusedCodes %></h3>
-          <p>🔑 الأكواد المتبقية</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <h3><%= stats.totalLectures %></h3>
-          <p>🎬 المحاضرات</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card green">
-          <h3><%= stats.usedCodes %></h3>
-          <p>✅ الأكواد المستخدمة</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card orange">
-          <h3><%= stats.newStudentsThisWeek %></h3>
-          <p>🆕 طلاب جدد</p>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card">
-          <h3><%= stats.codesUsedToday %></h3>
-          <p>📅 أكواد اليوم</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card-custom" id="charts">
-    <h4>📈 الرسوم البيانية</h4>
-    <div class="row">
-      <div class="col-md-6 mb-4">
-        <canvas id="studentsChart"></canvas>
-      </div>
-      <div class="col-md-6 mb-4">
-        <canvas id="codesChart"></canvas>
-      </div>
-      <div class="col-md-6 mb-4">
-        <canvas id="pieChart"></canvas>
-      </div>
+      <div class="col-6 col-md-3"><div class="stat-card"><h3><%= stats.totalStudents %></h3><p>👥 الطلاب</p></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card green"><h3><%= stats.activeStudents %></h3><p>✅ نشطون</p></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card orange"><h3><%= stats.totalCourses %></h3><p>📚 كورسات</p></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card red"><h3><%= stats.unusedCodes %></h3><p>🔑 أكواد متاحة</p></div></div>
     </div>
   </div>
 
@@ -207,100 +109,71 @@
           <div class="col-12">
             <select name="courseId" class="form-select bg-dark text-white" required>
               <option value="">اختر الكورس...</option>
-              <% if (courses) { %>
+              <% if (typeof courses !== 'undefined' && courses) { %>
                 <% courses.forEach(function(c) { %>
                   <option value="<%= c._id %>"><%= c.title %></option>
                 <% }); %>
               <% } %>
             </select>
           </div>
-          <div class="col-md-6">
-            <input type="text" name="title" class="form-control bg-dark text-white" placeholder="عنوان المحاضرة" required>
-          </div>
-          <div class="col-md-6">
-            <input type="text" name="vid" class="form-control bg-dark text-white" placeholder="YouTube ID" required>
-          </div>
-          <div class="col-12">
-            <button class="btn btn-success w-100">إضافة</button>
-          </div>
+          <div class="col-md-6"><input type="text" name="title" class="form-control bg-dark text-white" placeholder="العنوان" required></div>
+          <div class="col-md-6"><input type="text" name="vid" class="form-control bg-dark text-white" placeholder="YouTube ID" required></div>
+          <div class="col-12"><button class="btn btn-success w-100">إضافة</button></div>
         </form>
       </div>
     </div>
   </div>
 
   <div class="card-custom" id="courses">
-    <h5>📚 الكورسات والمحاضرات</h5>
+    <h5>📚 الكورسات الحالية</h5>
     <div class="row">
-      <% if (courses && courses.length > 0) { %>
+      <% if (typeof courses !== 'undefined' && courses.length > 0) { %>
         <% courses.forEach(function(c) { %>
           <div class="col-md-6 mb-3">
-            <div class="code-box" style="display: block;">
+            <div class="code-box d-block">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="fw-bold"><%= c.title %></span>
-                <div>
-                  <button class="btn btn-sm btn-outline-info" onclick="showEditCourseForm('<%= c._id %>', '<%= c.title %>', '<%= c.thumb || '' %>')">✏️</button>
-                  <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
-                </div>
+                <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الكورس؟')">🗑️</a>
               </div>
-              <div class="mt-2">
-                <% if (c.lectures && c.lectures.length > 0) { %>
-                  <% c.lectures.forEach(function(lec, lecIndex) { %>
-                    <div class="lecture-item">
-                      <span class="small"><%= lecIndex + 1 %>. <%= lec.title %></span>
-                      <div>
-                        <button class="btn btn-sm btn-outline-primary" onclick="showEditLecForm('<%= c._id %>', '<%= lecIndex %>', '<%= lec.title %>', '<%= lec.vid %>')">✏️</button>
-                        <a href="/admin/delete-lecture/<%= c._id %>/<%= lecIndex %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
-                      </div>
-                    </div>
-                  <% }); %>
-                <% } else { %>
-                  <p class="small text-secondary">لا توجد محاضرات</p>
-                <% } %>
-              </div>
+              <% if (c.lectures && c.lectures.length > 0) { %>
+                <% c.lectures.forEach(function(lec, index) { %>
+                  <div class="lecture-item">
+                    <span class="small"><%= index + 1 %>. <%= lec.title %></span>
+                    <a href="/admin/delete-lecture/<%= c._id %>/<%= index %>" class="btn btn-sm text-danger"><i class="fa fa-times"></i></a>
+                  </div>
+                <% }); %>
+              <% } %>
             </div>
           </div>
         <% }); %>
-      <% } else { %>
-        <div class="col-12 text-center">لا توجد كورسات</div>
       <% } %>
     </div>
   </div>
 
   <div class="card-custom" id="students">
-    <h5>👥 الطلاب</h5>
+    <h5>👥 الطلاب المسجلون</h5>
     <div class="table-responsive">
       <table class="table table-dark table-hover text-center">
         <thead>
           <tr>
             <th>الاسم</th>
-            <th>الإيميل</th>
             <th>كلمة المرور</th>
-            <th>الكورسات</th>
             <th>التحكم</th>
           </tr>
         </thead>
         <tbody>
-          <% if (students && students.length > 0) { %>
-            <% students.forEach(function(s) { 
-              var coursesCount = 0;
-              try {
-                var coursesObj = JSON.parse(s.courses || '{}');
-                coursesCount = Object.keys(coursesObj).length;
-              } catch(e) { coursesCount = 0; }
-            %>
+          <% if (typeof students !== 'undefined' && students.length > 0) { %>
+            <% students.forEach(function(s) { %>
               <tr>
                 <td><%= s.username %></td>
-                <td><%= s.email %></td>
-                <td><span class="password-text"><%= s.password %></span></td>
-                <td><span class="badge bg-primary"><%= coursesCount %></span></td>
+                <td><code class="text-info"><%= s.password %></code></td>
                 <td>
-                  <a href="/admin/reset-student/<%= s._id %>" class="btn btn-sm btn-warning" onclick="return confirm('تصفير؟')">تصفير</a>
-                  <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')">حذف</a>
+                  <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف الطالب؟')">حذف</a>
                 </td>
               </tr>
             <% }); %>
           <% } else { %>
-            <tr><td colspan="5" class="text-center">لا يوجد طلاب</td></tr>
+            <tr><td colspan="3">لا يوجد طلاب حالياً</td></tr>
           <% } %>
         </tbody>
       </table>
@@ -309,17 +182,41 @@
 
   <div class="card-custom" id="codes">
     <h5>🔑 أكواد التفعيل</h5>
-    <div class="d-flex gap-2 mb-3 flex-wrap">
+    <div class="mb-3">
       <a href="/admin/generate-keys" class="btn btn-sm btn-warning">توليد 20 كود</a>
-      <a href="/admin/delete-all-codes" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكل؟')">حذف الكل</a>
+      <a href="/admin/delete-all-codes" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكل؟')">مسح الكل</a>
     </div>
-    <div class="row g-2" style="max-height: 200px; overflow-y: auto;">
-      <% if (codes && codes.length > 0) { %>
+    <div class="row g-2" style="max-height: 250px; overflow-y: auto;">
+      <% if (typeof codes !== 'undefined' && codes.length > 0) { %>
         <% codes.forEach(function(code) { %>
           <div class="col-md-3 col-6">
             <div class="code-box">
               <span class="code-text <%= code.used ? 'text-danger text-decoration-line-through' : 'text-success' %>">
                 <%= code.code %>
               </span>
-              <div>
-                <button class="btn btn-sm btn-outline-primary" onclick="copyCode('<%= code.code %>')">📋
+              <button class="btn btn-sm text-light" onclick="copyCode('<%= code.code %>')"><i class="fa fa-copy"></i></button>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('mobileSidebar').classList.toggle('active');
+    document.querySelector('.overlay').classList.toggle('active');
+  }
+
+  function copyCode(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('تم نسخ الكود: ' + text);
+    }).catch(err => {
+      console.error('فشل النسخ: ', err);
+    });
+  }
+</script>
+
+</body>
+</html>

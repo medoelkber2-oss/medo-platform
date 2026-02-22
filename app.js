@@ -50,7 +50,7 @@ app.get('/login', (req, res) => res.render('login', { error: '', success: '' }))
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   
-  // Admin login
+  // Admin login (main admin)
   if (email === 'admin@medo.com' && password === 'admin123') {
     req.session.isAdmin = true;
     req.session.userId = 'admin-main';
@@ -62,7 +62,13 @@ app.post('/login', async (req, res) => {
   if (user) {
     req.session.userId = user._id;
     req.session.isAdmin = user.isAdmin || false;
-    res.redirect('/home');
+    req.session.username = user.username;
+    
+    if (user.isAdmin) {
+      res.redirect('/admin');
+    } else {
+      res.redirect('/home');
+    }
   } else {
     res.render('login', { error: 'بيانات الدخول خاطئة', success: '' });
   }
@@ -175,9 +181,16 @@ app.post('/reset-password/:token', async (req, res) => {
 app.get('/admin', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   
+  // جلب الطلاب (غير الأدمنز)
   const students = await User.find({ isAdmin: false });
+  
+  // جلب الأكواد
   const codes = await Code.find({});
+  
+  // جلب الكورسات
   const courses = await Course.find({});
+  
+  // جلب الأدمنز
   const admins = await User.find({ isAdmin: true });
   
   res.render('admin', { students, codes, courses, admins });
@@ -275,7 +288,7 @@ app.post('/admin/add-admin', async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       // تحويل المستخدم الحالي لأدمن
-      await User.findByIdAndUpdate(existingUser._id, { isAdmin: true });
+      await User.findByIdAndUpdate(existingUser._id, { isAdmin: true, username: username });
       console.log('✅ تم تحويل المستخدم لأدمن:', email);
     } else {
       // إنشاء أدمن جديد
@@ -300,7 +313,7 @@ app.get('/admin/delete-admin/:id', async (req, res) => {
   if (req.params.id === 'admin-main') {
     return res.redirect('/admin#admins-section');
   }
-  await User.findByIdAndDelete(req.params.id);
+  await User.findByIdAndUpdate(req.params.id, { isAdmin: false });
   res.redirect('/admin#admins-section');
 });
 

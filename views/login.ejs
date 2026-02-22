@@ -30,19 +30,18 @@
         .form-control {
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
+            color: white !important;
             padding: 12px;
             border-radius: 12px;
             text-align: right;
         }
         .form-control:focus {
             background: rgba(0, 0, 0, 0.3);
-            color: white;
             border-color: #6366f1;
-            box-shadow: none;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
         }
         .btn-login {
-            background: #6366f1;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
             border: none;
             padding: 12px;
             border-radius: 12px;
@@ -50,47 +49,57 @@
             transition: 0.3s;
         }
         .btn-login:hover {
-            background: #4f46e5;
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+        .input-group-text {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #6366f1;
+            border-radius: 12px 0 0 12px !important;
         }
     </style>
 </head>
 <body>
     <div class="login-card shadow-lg text-center">
-        <h2 class="fw-black mb-2">🎓 مستر ميدو</h2>
-        <p class="text-secondary mb-4">أهلاً بك في منصتك التعليمية</p>
+        <div class="mb-4">
+            <h2 class="fw-black mb-1 text-white">🎓 مستر ميدو</h2>
+            <div style="width: 50px; height: 4px; background: #6366f1; margin: 0 auto; border-radius: 2px;"></div>
+        </div>
+        
+        <p class="text-secondary mb-4 small">سجل دخولك لمتابعة دروسك</p>
 
-        <% if (error) { %>
-            <div class="alert alert-danger py-2 small" style="border-radius: 10px;">
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger py-2 small border-0 mb-3" style="background: rgba(220, 53, 69, 0.2); color: #ff8e98;">
                 <i class="fas fa-exclamation-circle me-1"></i> <%= error %>
-            </div>
-        <% } %>
-        <% if (success) { %>
-            <div class="alert alert-success py-2 small" style="border-radius: 10px;">
-                <i class="fas fa-check-circle me-1"></i> <%= success %>
             </div>
         <% } %>
 
         <form action="/login" method="POST">
             <div class="mb-3 text-end">
-                <label class="form-label small text-secondary">البريد الإلكتروني</label>
-                <input type="email" name="email" class="form-control" placeholder="example@mail.com" required>
+                <label class="form-label small text-secondary px-2">البريد الإلكتروني</label>
+                <div class="input-group">
+                    <input type="email" name="email" class="form-control" placeholder="example@mail.com" required>
+                </div>
             </div>
+            
             <div class="mb-4 text-end">
-                <label class="form-label small text-secondary">كلمة السر</label>
+                <label class="form-label small text-secondary px-2">كلمة السر</label>
                 <input type="password" name="password" class="form-control" placeholder="********" required>
             </div>
-            <button type="submit" class="btn btn-login w-100 text-white mb-3">دخول الحساب</button>
+
+            <button type="submit" class="btn btn-login w-100 text-white mb-3">
+                <i class="fas fa-sign-in-alt me-2"></i> دخول الحساب
+            </button>
         </form>
 
-        <div class="d-flex justify-content-between mt-3">
+        <div class="d-flex justify-content-between mt-3 px-2">
             <a href="/forgot-password" class="text-warning text-decoration-none small">
-                <i class="fas fa-key me-1"></i> نسيت كلمة المرور؟
+                نسيت كلمة المرور؟
             </a>
-            <p class="small text-secondary mb-0">
-                ليس لديك حساب؟ 
-                <a href="/signup" class="text-primary text-decoration-none fw-bold">أنشئ حساباً الآن</a>
-            </p>
+            <a href="/signup" class="text-primary text-decoration-none small fw-bold">
+                إنشاء حساب جديد
+            </a>
         </div>
     </div>
 </body>

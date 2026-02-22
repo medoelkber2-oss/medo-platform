@@ -6,9 +6,45 @@
   <title>لوحة التحكم - مستر ميدو</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { font-family: 'Cairo', sans-serif; }
     body { background: #0f172a; color: white; padding: 20px; }
+    
+    /* تحسين الموبايل */
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .container { padding: 0; }
+      h2 { font-size: 1.2rem; }
+      .btn { padding: 8px 12px; font-size: 0.9rem; }
+    }
+    
+    /* القائمة الجانبية للموبايل */
+    .mobile-sidebar {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      background: #1e293b;
+      z-index: 9999;
+      padding: 20px;
+      transition: 0.3s;
+    }
+    .mobile-sidebar.active { right: 0; }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 9998;
+    }
+    .overlay.active { display: block; }
+    
     .card-custom { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
     .table { color: white; vertical-align: middle; }
     .code-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -16,286 +52,279 @@
     .admin-badge { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; }
     .lecture-item { background: rgba(0,0,0,0.2); padding: 8px; margin-bottom: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
     .password-text { font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
+    
+    /* إحصائيات */
+    .stat-card { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 15px; }
+    .stat-card h3 { font-size: 2rem; margin: 0; }
+    .stat-card p { margin: 0; opacity: 0.8; }
+    .stat-card.green { background: linear-gradient(135deg, #10b981, #059669); }
+    .stat-card.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .stat-card.red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    
+    /* الإشعارات */
+    .notification-item {
+      background: rgba(255,255,255,0.05);
+      border-right: 4px solid #6366f1;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+    }
+    .notification-item.new-user { border-color: #10b981; }
+    .notification-item.code-used { border-color: #f59e0b; }
+    .notification-item.new-course { border-color: #6366f1; }
+    .notification-item.new-lecture { border-color: #8b5cf6; }
+    
+    /* سجل الأنشطة */
+    .activity-item {
+      background: rgba(0,0,0,0.2);
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+    .activity-time { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-      <h2 class="text-primary">لوحة تحكم مستر ميدو</h2>
-      <a href="/logout" class="btn btn-danger">تسجيل خروج</a>
-    </div>
 
-    <div class="mb-4 d-flex flex-wrap gap-2">
-      <a href="#courses" class="btn btn-outline-light btn-sm">الكورسات</a>
-      <a href="#students" class="btn btn-outline-light btn-sm">الطلاب</a>
-      <a href="#codes" class="btn btn-outline-light btn-sm">الأكواد</a>
-      <a href="#admins" class="btn btn-outline-primary btn-sm">الأدمنز</a>
-    </div>
+<!-- القائمة الجانبية للموبايل -->
+<div class="overlay" onclick="toggleSidebar()"></div>
+<div class="mobile-sidebar" id="mobileSidebar">
+  <h4 class="text-white mb-4">القائمة</h4>
+  <a href="#stats" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">📊 الإحصائيات</a>
+  <a href="#courses" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">📚 الكورسات</a>
+  <a href="#students" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">👥 الطلاب</a>
+  <a href="#codes" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">🔑 الأكواد</a>
+  <a href="#admins" class="btn btn-outline-light w-100 mb-2" onclick="toggleSidebar()">👑 الأدمنز</a>
+  <a href="#notifications" class="btn btn-outline-primary w-100 mb-2" onclick="toggleSidebar()">🔔 الإشعارات</a>
+  <a href="#activity" class="btn btn-outline-warning w-100 mb-2" onclick="toggleSidebar()">📋 سجل الأنشطة</a>
+  <a href="#charts" class="btn btn-outline-info w-100 mb-2" onclick="toggleSidebar()">📈 الرسوم البيانية</a>
+  <hr>
+  <a href="/logout" class="btn btn-danger w-100">🚪 خروج</a>
+</div>
 
+<div class="container">
+  <!-- الهdiv class="dيدر -->
+  <-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-outline-light d-md-none" onclick="toggleSidebar()">☰</button>
+      <h2 class="text-primary mb-0">لوحة تحكم مستر ميدو</h2>
+    </div>
+    <div>
+      <span class="badge bg-danger" id="notifCount"><%= notifications ? notifications.length : 0 %> إشعار</span>
+      <a href="/logout" class="btn btn-danger btn-sm">تسجيل خروج</a>
+    </div>
+  </div>
+
+  <!-- روابط التنقل -->
+  <div class="mb-4 d-none d-md-flex flex-wrap gap-2">
+    <a href="#stats" class="btn btn-outline-light btn-sm">📊 الإحصائيات</a>
+    <a href="#courses" class="btn btn-outline-light btn-sm">📚 الكورسات</a>
+    <a href="#students" class="btn btn-outline-light btn-sm">👥 الطلاب</a>
+    <a href="#codes" class="btn btn-outline-light btn-sm">🔑 الأكواد</a>
+    <a href="#admins" class="btn btn-outline-primary btn-sm">👑 الأدمنز</a>
+    <a href="#notifications" class="btn btn-outline-primary btn-sm">🔔 الإشعارات</a>
+    <a href="#activity" class="btn btn-outline-warning btn-sm">📋 سجل الأنشطة</a>
+    <a href="#charts" class="btn btn-outline-info btn-sm">📈 الرسوم البيانية</a>
+  </div>
+
+  <!-- الإحصائيات -->
+  <div class="card-custom" id="stats">
+    <h4>📊 الإحصائيات</h4>
     <div class="row">
-      <div class="col-md-5">
-        <div class="card-custom">
-          <h5>إنشاء كورس جديد</h5>
-          <form action="/admin/add-course" method="POST">
-            <input type="text" name="title" class="form-control mb-2 bg-dark text-white" placeholder="عنوان الكورس" required>
-            <input type="text" name="thumb" class="form-control mb-2 bg-dark text-white" placeholder="رابط صورة الغلاف">
-            <button class="btn btn-primary w-100">إنشاء</button>
-          </form>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <h3><%= stats.totalStudents %></h3>
+          <p>👥 الطلاب الكلي</p>
         </div>
       </div>
-      <div class="col-md-7">
-        <div class="card-custom">
-          <h5>إضافة محاضرة</h5>
-          <form action="/admin/add-lecture" method="POST" class="row g-2">
-            <div class="col-12">
-              <select name="courseId" class="form-select bg-dark text-white" required>
-                <option value="">اختر الكورس...</option>
-                <% if (typeof courses !== 'undefined' && courses && courses.length > 0) { %>
-                  <% courses.forEach(function(c) { %>
-                    <option value="<%= c._id %>"><%= c.title %></option>
-                  <% }); %>
-                <% } %>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <input type="text" name="title" class="form-control bg-dark text-white" placeholder="عنوان المحاضرة" required>
-            </div>
-            <div class="col-md-6">
-              <input type="text" name="vid" class="form-control bg-dark text-white" placeholder="YouTube ID" required>
-            </div>
-            <div class="col-12">
-              <button class="btn btn-success w-100">إضافة</button>
-            </div>
-          </form>
+      <div class="col-6 col-md-3">
+        <div class="stat-card green">
+          <h3><%= stats.activeStudents %></h3>
+          <p>✅ الطلاب النشطون</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card orange">
+          <h3><%= stats.totalCourses %></h3>
+          <p>📚 الكورسات</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card red">
+          <h3><%= stats.unusedCodes %></h3>
+          <p>🔑 الأكواد المتبقية</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <h3><%= stats.totalLectures %></h3>
+          <p>🎬 المحاضرات</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card green">
+          <h3><%= stats.usedCodes %></h3>
+          <p>✅ الأكواد المستخدمة</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card orange">
+          <h3><%= stats.newStudentsThisWeek %></h3>
+          <p>🆕 طلاب جدد</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <h3><%= stats.codesUsedToday %></h3>
+          <p>📅 أكواد اليوم</p>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="card-custom" id="courses">
-      <h5>الكورسات والمحاضرات</h5>
-      <div class="row">
-        <% if (typeof courses !== 'undefined' && courses && courses.length > 0) { %>
-          <% courses.forEach(function(c) { %>
-            <div class="col-md-6 mb-3">
-              <div class="code-box" style="display: block;">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold"><%= c.title %></span>
-                  <div>
-                    <button class="btn btn-sm btn-outline-info me-1" onclick="showEditCourseForm('<%= c._id %>', '<%= c.title %>', '<%= c.thumb || '' %>')">✏️ تعديل</button>
-                    <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الكورس؟')">🗑️</a>
-                  </div>
+  <!-- الرسوم البيانية -->
+  <div class="card-custom" id="charts">
+    <h4>📈 الرسوم البيانية</h4>
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <canvas id="studentsChart"></canvas>
+      </div>
+      <div class="col-md-6 mb-4">
+        <canvas id="codesChart"></canvas>
+      </div>
+      <div class="col-md-6 mb-4">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- إضافة كورس ومحاضرة -->
+    <div class="col-md-5">
+      <div class="card-custom">
+        <h5>إنشاء كورس جديد</h5>
+        <form action="/admin/add-course" method="POST">
+          <input type="text" name="title" class="form-control mb-2 bg-dark text-white" placeholder="عنوان الكورس" required>
+          <input type="text" name="thumb" class="form-control mb-2 bg-dark text-white" placeholder="رابط صورة الغلاف">
+          <button class="btn btn-primary w-100">إنشاء</button>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="card-custom">
+        <h5>إضافة محاضرة</h5>
+        <form action="/admin/add-lecture" method="POST" class="row g-2">
+          <div class="col-12">
+            <select name="courseId" class="form-select bg-dark text-white" required>
+              <option value="">اختر الكورس...</option>
+              <% if (courses) { %>
+                <% courses.forEach(function(c) { %>
+                  <option value="<%= c._id %>"><%= c.title %></option>
+                <% }); %>
+              <% } %>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="title" class="form-control bg-dark text-white" placeholder="عنوان المحاضرة" required>
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="vid" class="form-control bg-dark text-white" placeholder="YouTube ID" required>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-success w-100">إضافة</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- الكورسات -->
+  <div class="card-custom" id="courses">
+    <h5>📚 الكورسات والمحاضرات</h5>
+    <div class="row">
+      <% if (courses && courses.length > 0) { %>
+        <% courses.forEach(function(c) { %>
+          <div class="col-md-6 mb-3">
+            <div class="code-box" style="display: block;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold"><%= c.title %></span>
+                <div>
+                  <button class="btn btn-sm btn-outline-info" onclick="showEditCourseForm('<%= c._id %>', '<%= c.title %>', '<%= c.thumb || '' %>')">✏️</button>
+                  <a href="/admin/delete-course/<%= c._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
                 </div>
-                <div class="mt-2">
-                  <% if (c.lectures && c.lectures.length > 0) { %>
-                    <% c.lectures.forEach(function(lec, lecIndex) { %>
-                      <div class="lecture-item">
-                        <span class="small"><%= lecIndex + 1 %>. <%= lec.title %></span>
-                        <div>
-                          <button class="btn btn-sm btn-outline-primary" onclick="showEditLecForm('<%= c._id %>', '<%= lecIndex %>', '<%= lec.title %>', '<%= lec.vid %>')">✏️</button>
-                          <a href="/admin/delete-lecture/<%= c._id %>/<%= lecIndex %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف المحاضرة؟')">🗑️</a>
-                        </div>
+              </div>
+              <div class="mt-2">
+                <% if (c.lectures && c.lectures.length > 0) { %>
+                  <% c.lectures.forEach(function(lec, lecIndex) { %>
+                    <div class="lecture-item">
+                      <span class="small"><%= lecIndex + 1 %>. <%= lec.title %></span>
+                      <div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="showEditLecForm('<%= c._id %>', '<%= lecIndex %>', '<%= lec.title %>', '<%= lec.vid %>')">✏️</button>
+                        <a href="/admin/delete-lecture/<%= c._id %>/<%= lecIndex %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
                       </div>
-                    <% }); %>
-                  <% } else { %>
-                    <p class="small text-secondary">لا توجد محاضرات</p>
-                  <% } %>
-                </div>
-              </div>
-            </div>
-          <% }); %>
-        <% } else { %>
-          <div class="col-12 text-center">لا توجد كورسات</div>
-        <% } %>
-      </div>
-    </div>
-
-    <div class="card-custom" id="students">
-      <h5>الطلاب</h5>
-      <div class="table-responsive">
-        <table class="table table-dark table-hover text-center">
-          <thead>
-            <tr>
-              <th>الاسم</th>
-              <th>الإيميل</th>
-              <th>كلمة المرور</th>
-              <th>عدد الكورسات</th>
-              <th>التحكم</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (typeof students !== 'undefined' && students && students.length > 0) { %>
-              <% students.forEach(function(s) { 
-                var coursesCount = 0;
-                try {
-                  var coursesObj = JSON.parse(s.courses || '{}');
-                  coursesCount = Object.keys(coursesObj).length;
-                } catch(e) { coursesCount = 0; }
-              %>
-                <tr>
-                  <td><%= s.username %></td>
-                  <td><%= s.email %></td>
-                  <td><span class="password-text"><%= s.password %></span></td>
-                  <td><span class="badge bg-primary"><%= coursesCount %> كورس</span></td>
-                  <td>
-                    <a href="/admin/reset-student/<%= s._id %>" class="btn btn-sm btn-warning" onclick="return confirm('تصفير؟')">تصفير</a>
-                    <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')">حذف</a>
-                  </td>
-                </tr>
-              <% }); %>
-            <% } else { %>
-              <tr><td colspan="5" class="text-center">لا يوجد طلاب</td></tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card-custom" id="codes">
-      <h5>أكواد التفعيل</h5>
-      <div class="d-flex gap-2 mb-3">
-        <a href="/admin/generate-keys" class="btn btn-sm btn-warning">توليد 20 كود</a>
-        <a href="/admin/delete-all-codes" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكل؟')">حذف الكل</a>
-      </div>
-      <div class="row g-2" style="max-height: 200px; overflow-y: auto;">
-        <% if (typeof codes !== 'undefined' && codes && codes.length > 0) { %>
-          <% codes.forEach(function(code) { %>
-            <div class="col-md-3 col-6">
-              <div class="code-box">
-                <span class="code-text <%= code.used ? 'text-danger text-decoration-line-through' : 'text-success' %>">
-                  <%= code.code %>
-                </span>
-                <div>
-                  <button class="btn btn-sm btn-outline-primary" data-code="<%= code.code %>">📋</button>
-                  <a href="/admin/delete-code/<%= code._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
-                </div>
-              </div>
-            </div>
-          <% }); %>
-        <% } else { %>
-          <div class="col-12 text-center">لا توجد أكواد</div>
-        <% } %>
-      </div>
-    </div>
-
-    <div class="card-custom" id="admins">
-      <h5>الأدمنز</h5>
-      <button class="btn btn-sm btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addAdminModal">إضافة أدمن</button>
-      <div class="row">
-        <% if (typeof admins !== 'undefined' && admins && admins.length > 0) { %>
-          <% admins.forEach(function(a) { %>
-            <div class="col-md-4 col-6">
-              <div class="code-box">
-                <div>
-                  <span class="admin-badge">👑 <%= a.username %></span>
-                  <p class="small text-secondary mt-1 mb-0"><%= a.email %></p>
-                  <p class="small text-warning mt-1 mb-0">كلمة المرور: <span class="password-text"><%= a.password %></span></p>
-                </div>
-                <% if (String(a._id) !== 'admin-main') { %>
-                  <a href="/admin/delete-admin/<%= a._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
+                    </div>
+                  <%}); %>
+                <% } else { %>
+                  <p class="small text-secondary">لا توجد محاضرات</p>
                 <% } %>
               </div>
             </div>
-          <% }); %>
-        <% } else { %>
-          <div class="col-12 text-center">لا يوجد أدمنز</div>
-        <% } %>
-      </div>
+          </div>
+        <%}); %>
+      <% } else { %>
+        <div class="col-12 text-center">لا توجد كورسات</div>
+      <% } %>
     </div>
   </div>
 
-  <!-- مودال إضافة أدمن -->
-  <div class="modal fade" id="addAdminModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark text-white">
-        <form action="/admin/add-admin" method="POST">
-          <div class="modal-header">
-            <h5>إضافة أدمن جديد</h5>
-          </div>
-          <div class="modal-body">
-            <input type="text" name="username" class="form-control mb-2 bg-dark text-white" placeholder="اسم الأدمن" required>
-            <input type="email" name="email" class="form-control bg-dark text-white" placeholder="الإيميل" required>
-            <small class="text-warning">كلمة المرور الافتراضية: admin123</small>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-primary">إضافة</button>
-          </div>
-        </form>
-      </div>
+  <!-- الطلاب -->
+  <div class="card-custom" id="students">
+    <h5>👥 الطلاب</h5>
+    <div class="table-responsive">
+      <table class="table table-dark table-hover text-center">
+        <thead>
+          <tr>
+            <th>الاسم</th>
+            <th>الإيميل</th>
+            <th>كلمة المرور</th>
+            <th>الكورسات</th>
+            <th>التحكم</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (students && students.length > 0) { %>
+            <% students.forEach(function(s) { 
+              var coursesCount = 0;
+              try {
+                var coursesObj = JSON.parse(s.courses || '{}');
+                coursesCount = Object.keys(coursesObj).length;
+              } catch(e) { coursesCount = 0; }
+            %>
+              <tr>
+                <td><%= s.username %></td>
+                <td><%= s.email %></td>
+                <td><span class="password-text"><%= s.password %></span></td>
+                <td><span class="badge bg-primary"><%= coursesCount %></span></td>
+                <td>
+                  <a href="/admin/reset-student/<%= s._id %>" class="btn btn-sm btn-warning" onclick="return confirm('تصفير؟')">تصفير</a>
+                  <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')">حذف</a>
+                </td>
+              </tr>
+            <%}); %>
+          <% } else { %>
+            <tr><td colspan="5" class="text-center">لا يوجد طلاب</td></tr>
+          <% } %>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- مودال تعديل الكورس -->
-  <div class="modal fade" id="editCourseModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark text-white">
-        <form id="editCourseForm" method="POST">
-          <div class="modal-header">
-            <h5>تعديل الكورس</h5>
-          </div>
-          <div class="modal-body">
-            <input type="text" name="title" id="editCourseTitle" class="form-control mb-2 bg-dark text-white" placeholder="عنوان الكورس" required>
-            <input type="text" name="thumb" id="editCourseThumb" class="form-control bg-dark text-white" placeholder="رابط صورة الغلاف">
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-primary">حفظ</button>
-          </div>
-        </form>
-      </div>
+  <!-- الأكواد -->
+  <div class="card-custom" id="codes">
+    <h5>🔑 أكواد التفعيل</h5>
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+      <a href="/admin/generate-keys" class="btn btn-sm btn-warning">توليد 20 كود</a>
+      <a href="/admin/delete-all-codes" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكل؟')">حذف الكل</a>
     </div>
-  </div>
-
-  <!-- مودال تعديل المحاضرة -->
-  <div class="modal fade" id="editLecModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark text-white">
-        <form id="editLecForm" method="POST">
-          <div class="modal-header">
-            <h5>تعديل المحاضرة</h5>
-          </div>
-          <div class="modal-body">
-            <input type="text" name="title" id="editLecTitle" class="form-control mb-2 bg-dark text-white" placeholder="عنوان المحاضرة" required>
-            <input type="text" name="vid" id="editLecVid" class="form-control bg-dark text-white" placeholder="YouTube ID" required>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-primary">حفظ</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // نسخ الكود
-    document.querySelectorAll('.btn-outline-primary[data-code]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var code = this.getAttribute('data-code');
-        navigator.clipboard.writeText(code).then(function() {
-          alert('تم نسخ: ' + code);
-        }, function(err) {
-          console.error('خطأ في النسخ:', err);
-        });
-      });
-    });
-
-    // تعديل الكورس
-    function showEditCourseForm(id, title, thumb) {
-      document.getElementById('editCourseTitle').value = title;
-      document.getElementById('editCourseThumb').value = thumb;
-      document.getElementById('editCourseForm').action = '/admin/edit-course/' + id;
-      new bootstrap.Modal(document.getElementById('editCourseModal')).show();
-    }
-
-    // تعديل المحاضرة
-    function showEditLecForm(courseId, lecIndex, title, vid) {
-      document.getElementById('editLecTitle').value = title;
-      document.getElementById('editLecVid').value = vid;
-      document.getElementById('editLecForm').action = '/admin/edit-lecture/' + courseId + '/' + lecIndex;
-      new bootstrap.Modal(document.getElementById('editLecModal')).show();
-    }
-  </script>
-</body>
-</html>
+    <div class="row g-2" style="max-height:

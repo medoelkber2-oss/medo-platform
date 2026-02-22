@@ -7,6 +7,7 @@ const app = express();
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+app.use(express.json()); // إضافة لدعم بيانات الـ JSON
 app.use(express.urlencoded({ extended: true }));
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://medoelkber2_db_user:I7vueTTD6aU9xB4C@cluster0.dbtgo0g.mongodb.net/myPlatform?retryWrites=true&w=majority";
@@ -15,14 +16,14 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ Database Connected"))
   .catch(err => console.error("❌ Database Error:", err));
 
-// --- تحديث الموديل لإضافة حالة الاتصال ---
+// --- الموديلات (Models) ---
 const User = mongoose.model('User', new mongoose.Schema({
   username: String,
   email: { type: String, unique: true },
   password: String,
   courses: { type: String, default: '{}' },
   isAdmin: { type: Boolean, default: false },
-  isOnline: { type: Boolean, default: false }, // جديد: للنشطين
+  isOnline: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 }));
 
@@ -59,92 +60,92 @@ const ActivityLog = mongoose.model('ActivityLog', new mongoose.Schema({
 app.use(session({
   secret: 'medo-secret-key-2024',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: { maxAge: 1000 * 60 * 60 * 24 } // يوم كامل
 }));
 
-const createNotification = async (type, message, data = {}) => {
-  await Notification.create({ type, message, data });
+// --- وظائف مساعدة ---
+const logActivity = async (action, details, userId = '', userName = '') => {
+  try { await ActivityLog.create({ action, details, userId, userName }); } catch(e) {}
 };
 
-const logActivity = async (action, details, userId = '', userName = '') => {
-  await ActivityLog.create({ action, details, userId, userName });
-};
+// --- المسارات (Routes) ---
 
 app.get('/', (req, res) => res.redirect('/login'));
 
 app.get('/login', (req, res) => res.render('login', { error: '', success: '' }));
 
-// --- تحديث تسجيل الدخول ليجعل المستخدم متصل ---
+// 1. تعديل مسار تسجيل الدخول (حل مشكلة الدخول)
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  
-  if (email === 'admin@medo.com' && password === 'admin123') {
-    req.session.isAdmin = true;
-    req.session.userId = 'admin-main';
-    req.session.username = 'مدير عام';
-    logActivity('تسجيل دخول', 'دخول الأدمن الرئيسي', 'admin-main', 'مدير عام');
-    return res.redirect('/admin');
-  }
-  
-  const user = await User.findOne({ email, password });
-  if (user) {
-    user.isOnline = true; // أصبح نشط
-    await user.save();
-    
-    req.session.userId = user._id.toString();
-    req.session.isAdmin = user.isAdmin || false;
-    req.session.username = user.username;
-    
-    logActivity('تسجيل دخول', 'دخول المستخدم', user._id.toString(), user.username);
-    res.redirect(user.isAdmin ? '/admin' : '/home');
-  } else {
-    res.render('login', { error: 'بيانات الدخول خاطئة', success: '' });
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.render('login', { error: 'برجاء ادخال البيانات', success: '' });
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    // الأدمن الرئيسي
+    if (cleanEmail === 'admin@medo.com' && cleanPass === 'admin123') {
+      req.session.isAdmin = true;
+      req.session.userId = 'admin-main';
+      req.session.username = 'مدير عام';
+      return res.redirect('/admin');
+    }
+
+    const user = await User.findOne({ email: cleanEmail, password: cleanPass });
+    if (user) {
+      user.isOnline = true;
+      await user.save();
+
+      req.session.userId = user._id.toString();
+      req.session.isAdmin = user.isAdmin || false;
+      req.session.username = user.username;
+
+      logActivity('تسجيل دخول', 'دخول المستخدم', user._id.toString(), user.username);
+      res.redirect(user.isAdmin ? '/admin' : '/home');
+    } else {
+      res.render('login', { error: 'الإيميل أو الباسورد غلط يا بطل', success: '' });
+    }
+  } catch (err) {
+    res.render('login', { error: 'مشكلة في السيرفر، حاول تاني', success: '' });
   }
 });
 
-// --- تحديث تسجيل الخروج ليجعل المستخدم غير متصل ---
 app.get('/logout', async (req, res) => {
   if (req.session.userId && req.session.userId !== 'admin-main') {
     await User.findByIdAndUpdate(req.session.userId, { isOnline: false });
   }
-  logActivity('تسجيل خروج', 'خروج من النظام', req.session.userId, req.session.username);
   req.session.destroy();
   res.redirect('/login');
 });
 
-// (باقي مسارات Signup, Profile, Reset Password تظل كما هي بدون تغيير)
-// ... [يمكنك وضع الأكواد القديمة هنا] ...
-
-// --- تحديث لوحة التحكم بالأدمن بالإحصائيات الجديدة ---
+// 2. لوحة التحكم
 app.get('/admin', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
-  
+
   const students = await User.find({ isAdmin: false });
-  const codes = await Code.find({});
-  const courses = await Course.find({});
   const admins = await User.find({ isAdmin: true });
+  const courses = await Course.find({});
+  const codes = await Code.find({});
   const notifications = await Notification.find({}).sort({ createdAt: -1 }).limit(10);
-  const activities = await ActivityLog.find({}).sort({ createdAt: -1 }).limit(20);
-  
+
   const stats = {
     totalStudents: students.length,
-    activeStudents: await User.countDocuments({ isOnline: true, isAdmin: false }), // النشطين فعلياً
+    activeStudents: await User.countDocuments({ isOnline: true, isAdmin: false }),
     totalCourses: courses.length,
-    totalLectures: courses.reduce((acc, c) => acc + (c.lectures ? c.lectures.length : 0), 0),
-    usedCodes: codes.filter(c => c.used).length,
     unusedCodes: codes.filter(c => !c.used).length,
   };
-  
-  res.render('admin', { students, codes, courses, admins, notifications, activities, stats });
+
+  res.render('admin', { students, codes, courses, admins, notifications, stats });
 });
 
-// --- إضافة مسارات التحكم الجديدة ---
+// --- عمليات الأدمن الجديدة ---
 
-// إضافة/حذف أدمن
+// إضافة/حذف أدمن (بالاسم والجيميل)
 app.post('/admin/add-admin', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   const { username, email, password } = req.body;
-  await User.create({ username, email, password, isAdmin: true });
+  await User.create({ username, email: email.trim().toLowerCase(), password: password.trim(), isAdmin: true });
   res.redirect('/admin');
 });
 
@@ -154,14 +155,14 @@ app.get('/admin/delete-admin/:id', async (req, res) => {
   res.redirect('/admin');
 });
 
-// تصفير طالب (مسح كورساته)
+// تصفير طالب
 app.get('/admin/reset-student/:id', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   await User.findByIdAndUpdate(req.params.id, { courses: '{}' });
   res.redirect('/admin');
 });
 
-// تعديل كورس
+// تعديل كورس أو محاضرة
 app.post('/admin/edit-course/:id', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   const { title, thumb } = req.body;
@@ -169,6 +170,23 @@ app.post('/admin/edit-course/:id', async (req, res) => {
   res.redirect('/admin');
 });
 
-// تشغيل السيرفر
+// حذف محاضرة معينة داخل كورس
+app.get('/admin/delete-lecture/:courseId/:lectureIndex', async (req, res) => {
+  if (!req.session.isAdmin) return res.redirect('/login');
+  const course = await Course.findById(req.params.courseId);
+  if (course) {
+    course.lectures.splice(req.params.lectureIndex, 1);
+    await course.save();
+  }
+  res.redirect('/admin');
+});
+
+// حذف طالب
+app.get('/admin/delete-student/:id', async (req, res) => {
+  if (!req.session.isAdmin) return res.redirect('/login');
+  await User.findByIdAndDelete(req.params.id);
+  res.redirect('/admin');
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Admin Dashboard Live on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

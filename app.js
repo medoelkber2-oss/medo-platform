@@ -40,7 +40,6 @@ const Course = mongoose.model('Course', new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
-// نموذج الإشعارات
 const Notification = mongoose.model('Notification', new mongoose.Schema({
   type: String,
   message: String,
@@ -49,7 +48,6 @@ const Notification = mongoose.model('Notification', new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
-// نموذج سجل الأنشطة
 const ActivityLog = mongoose.model('ActivityLog', new mongoose.Schema({
   action: String,
   details: String,
@@ -64,17 +62,14 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// دالة إنشاء إشعار
 const createNotification = async (type, message, data = {}) => {
   await Notification.create({ type, message, data });
 };
 
-// دالة تسجيل النشاط
 const logActivity = async (action, details, userId = '', userName = '') => {
   await ActivityLog.create({ action, details, userId, userName });
 };
 
-// Routes
 app.get('/', (req, res) => res.redirect('/login'));
 
 app.get('/login', (req, res) => res.render('login', { error: '', success: '' }));
@@ -92,7 +87,7 @@ app.post('/login', async (req, res) => {
   
   const user = await User.findOne({ email, password });
   if (user) {
-    req.session.userId = user._id;
+    req.session.userId = user._id.toString();
     req.session.isAdmin = user.isAdmin || false;
     req.session.username = user.username;
     
@@ -224,7 +219,6 @@ app.post('/reset-password/:token', async (req, res) => {
   res.render('login', { error: '', success: 'تم تغيير كلمة المرور بنجاح' });
 });
 
-// Admin Routes
 app.get('/admin', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   
@@ -235,7 +229,6 @@ app.get('/admin', async (req, res) => {
   const notifications = await Notification.find({}).sort({ createdAt: -1 }).limit(10);
   const activities = await ActivityLog.find({}).sort({ createdAt: -1 }).limit(20);
   
-  // إحصائيات
   const stats = {
     totalStudents: students.length,
     activeStudents: students.filter(s => {
@@ -245,29 +238,20 @@ app.get('/admin', async (req, res) => {
     totalLectures: courses.reduce((acc, c) => acc + (c.lectures ? c.lectures.length : 0), 0),
     usedCodes: codes.filter(c => c.used).length,
     unusedCodes: codes.filter(c => !c.used).length,
-    
-    // إحصائيات الطلاب الجدد (آخر 7 أيام)
     newStudentsThisWeek: students.filter(s => {
       const dayAgo = new Date();
       dayAgo.setDate(dayAgo.getDate() - 7);
       return new Date(s.createdAt) > dayAgo;
     }).length,
-    
-    // إحصائيات الأكواد المستخدمة يومياً
     codesUsedToday: codes.filter(c => {
       if (!c.usedAt) return false;
       const today = new Date();
       return c.usedAt.toDateString() === today.toDateString();
     }).length,
-    
-    // إحصائيات الطلاب حسب شهر التسجيل
     studentsByMonth: {},
-    
-    // إحصائيات الأكواد المستخدمة يومياً (آخر 7 أيام)
     codesUsedByDay: {}
   };
   
-  // حساب الطلاب حسب الشهر
   const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
   students.forEach(s => {
     const date = new Date(s.createdAt);
@@ -275,7 +259,6 @@ app.get('/admin', async (req, res) => {
     stats.studentsByMonth[monthKey] = (stats.studentsByMonth[monthKey] || 0) + 1;
   });
   
-  // حساب الأكواد المستخدمة يومياً
   for (let i = 6; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
@@ -387,4 +370,10 @@ app.get('/admin/delete-all-codes', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   await Code.deleteMany({});
   logActivity('حذف كل الأكواد', 'حذف جميع أكواد التفعيل', req.session.userId, req.session.username);
-  res.redirect
+  res.redirect('/admin');
+});
+
+app.post('/admin/add-admin', async (req, res) => {
+  if (!req.session.isAdmin) return res.redirect('/login');
+  const { username, email } = req.body;
+  const defaultPassword = "admin

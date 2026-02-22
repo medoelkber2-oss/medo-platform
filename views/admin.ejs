@@ -12,6 +12,54 @@
         .table { color: white; vertical-align: middle; }
         .dropdown-menu-dark { background-color: #1e293b; border: 1px solid rgba(255,255,255,0.1); }
         .badge { font-size: 0.85rem; }
+        .code-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .code-text {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .code-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-copy {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid #6366f1;
+            color: #6366f1;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-copy:hover {
+            background: #6366f1;
+            color: white;
+        }
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -163,20 +211,41 @@
         </div>
 
         <div class="card-custom mt-4 shadow" id="codes-section">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h5><i class="fas fa-key me-2 text-warning"></i>أكواد التفعيل</h5>
-                <a href="/admin/generate-keys" class="btn btn-sm btn-warning fw-bold">توليد 20 كود جديد</a>
+                <div class="d-flex gap-2">
+                    <a href="/admin/generate-keys" class="btn btn-sm btn-warning fw-bold">
+                        <i class="fas fa-plus"></i> توليد 20 كود
+                    </a>
+                    <a href="/admin/delete-all-codes" class="btn btn-sm btn-danger fw-bold" onclick="return confirm('حذف كل الأكواد؟')">
+                        <i class="fas fa-trash"></i> حذف الكل
+                    </a>
+                </div>
             </div>
-            <div class="row g-2" style="max-height: 250px; overflow-y: auto;">
+            <div class="row g-2" style="max-height: 300px; overflow-y: auto;">
                 <% codes.forEach(code => { %>
-                    <div class="col-md-3">
-                        <div class="p-2 border border-secondary rounded text-center small bg-dark shadow-sm">
-                            <span class="<%= code.used ? 'text-danger text-decoration-line-through' : 'text-success fw-bold' %>">
+                    <div class="col-md-3 col-6">
+                        <div class="code-box">
+                            <span class="code-text <%= code.used ? 'text-danger text-decoration-line-through' : 'text-success' %>">
                                 <%= code.code %>
                             </span>
+                            <div class="code-actions">
+                                <button class="btn-copy" onclick="copyCode('<%= code.code %>')" title="نسخ">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <a href="/admin/delete-code/<%= code._id %>" class="btn-delete" onclick="return confirm('حذف هذا الكود؟')" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 <% }) %>
+                <% if(codes.length == 0) { %>
+                    <div class="col-12 text-center text-secondary py-4">
+                        <i class="fas fa-key fa-2x mb-2"></i>
+                        <p class="mb-0">لا توجد أكواد تفعيل</p>
+                    </div>
+                <% } %>
             </div>
         </div>
     </div>
@@ -239,6 +308,14 @@
             document.getElementById('editLecVid').value = lecture.vid;
             document.getElementById('editLecForm').action = `/admin/edit-lecture/${courseId}/${lecIndex}`;
             new bootstrap.Modal(document.getElementById('editLecModal')).show();
+        }
+
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('تم نسخ الكود: ' + code);
+            }).catch(err => {
+                console.error('فشل النسخ:', err);
+            });
         }
     </script>
 </body>

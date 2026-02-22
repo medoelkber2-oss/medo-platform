@@ -107,7 +107,7 @@ app.get('/video/:id', async (req, res) => {
 
 app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
 
-// ================= المسار الجديد: الملف الشخصي =================
+// ================= المسار: الملف الشخصي =================
 
 app.get('/profile', async (req, res) => {
     if (!req.session.userId) return res.redirect('/login');
@@ -123,11 +123,9 @@ app.post('/profile/update', async (req, res) => {
     let error = '';
     let success = '';
     
-    // التحقق من كلمة المرور الحالية
     if (currentPassword && currentPassword !== user.password) {
         error = 'كلمة المرور الحالية خاطئة';
     } else {
-        // تحديث البيانات
         if (username !== user.username) {
             await User.findByIdAndUpdate(user._id, { username });
             success = 'تم تحديث اسم المستخدم';
@@ -153,7 +151,7 @@ app.post('/profile/update', async (req, res) => {
     res.render('profile', { user: updatedUser, error, success });
 });
 
-// ================= المسارات الجديدة: استعادة كلمة المرور =================
+// ================= المسارات: استعادة كلمة المرور =================
 
 app.get('/forgot-password', (req, res) => {
     res.render('forgot-password', { error: '', success: '', resetLink: '' });
@@ -167,17 +165,11 @@ app.post('/forgot-password', async (req, res) => {
         return res.render('forgot-password', { error: 'هذا الإيميل غير مسجل', success: '', resetLink: '' });
     }
     
-    // توليد رمز استعادة (صالح لمدة ساعة)
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = Date.now() + 3600000; // ساعة
+    const resetTokenExpiry = Date.now() + 3600000;
     
-    await User.findByIdAndUpdate(user._id, { 
-        resetToken, 
-        resetTokenExpiry 
-    });
+    await User.findByIdAndUpdate(user._id, { resetToken, resetTokenExpiry });
     
-    // في التطبيق الحقيقي: إرسال إيميل يحتوي على الرابط
-    // هنا سنعرض الرابط في الصفحة والـ console
     const resetLink = `http://localhost:8080/reset-password/${resetToken}`;
     
     console.log('═══════════════════════════════════════');
@@ -341,6 +333,18 @@ app.get('/admin/generate-keys', async (req, res) => {
     res.redirect('/admin');
 });
 
+// مسار حذف كود واحد
+app.get('/admin/delete-code/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    try {
+        await Code.findByIdAndDelete(req.params.id);
+        res.redirect('/admin#codes-section');
+    } catch (err) {
+        res.send("خطأ في حذف الكود");
+    }
+});
+
+// مسار حذف كل الأكواد
 app.get('/admin/delete-all-codes', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     await Code.deleteMany({});

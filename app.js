@@ -188,6 +188,40 @@ app.post('/admin/add-course', async (req, res) => {
   res.redirect('/admin');
 });
 
+
+// تعديل الكورس
+app.post('/admin/edit-course/:id', async (req, res) => {
+  if (!req.session.isAdmin) return res.redirect('/login');
+  const { title, thumb } = req.body;
+  await Course.findByIdAndUpdate(req.params.id, { title, thumb });
+  res.redirect('/admin');
+});
+
+// تعديل المحاضرة
+app.post('/admin/edit-lecture/:courseId/:lecIndex', async (req, res) => {
+  if (!req.session.isAdmin) return res.redirect('/login');
+  const { title, vid } = req.body;
+  const { courseId, lecIndex } = req.params;
+  const course = await Course.findById(courseId);
+  if (course) {
+    course.lectures[parseInt(lecIndex)] = { title, vid };
+    await course.save();
+  }
+  res.redirect('/admin');
+});
+
+// إضافة أدمن (بالاسم والإيميل فقط - كلمة مرور افتراضية)
+app.post('/admin/add-admin', async (req, res) => {
+  if (!req.session.isAdmin) return res.redirect('/login');
+  const { username, email } = req.body;
+  const defaultPassword = "admin123"; // كلمة مرور افتراضية
+  const existingUser = await User.findOne({ email });
+  if (!existingUser) {
+    await User.create({ username, email, password: defaultPassword, isAdmin: true });
+  }
+  res.redirect('/admin#admins-section');
+});
+
 app.post('/admin/add-lecture', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   const { courseId, title, vid } = req.body;
@@ -264,3 +298,4 @@ app.get('/admin/delete-admin/:id', async (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+

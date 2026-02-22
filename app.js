@@ -401,4 +401,11 @@ app.get('/admin/delete-code/:id', async (req, res) => {
         const code = await Code.findById(req.params.id);
         await Code.findByIdAndDelete(req.params.id);
         await logActivity(req, 'حذف كود', 'الأكواد', `حذف كود: ${code.code}`);
-        res
+        res.redirect('/admin#codes-section');
+    } catch (err) {
+        res.send("خطأ في حذف الكود");
+    }
+});
+
+app.get('/admin/delete-all-codes', async (req, res) => {
+    if (!req.session.isAdmin)

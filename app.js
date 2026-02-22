@@ -9,14 +9,12 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://medoelkber2_db_user:I7vueTTD6aU9xB4C@cluster0.dbtgo0g.mongodb.net/myPlatform?retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ Database Connected"))
   .catch(err => console.error("❌ Database Error:", err));
 
-// Models
 const User = mongoose.model('User', new mongoose.Schema({
   username: String,
   email: { type: String, unique: true },
@@ -376,4 +374,4 @@ app.get('/admin/delete-all-codes', async (req, res) => {
 app.post('/admin/add-admin', async (req, res) => {
   if (!req.session.isAdmin) return res.redirect('/login');
   const { username, email } = req.body;
-  const defaultPassword = "admin
+  const

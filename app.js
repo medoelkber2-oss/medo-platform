@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const crypto = require('crypto');
 
 const app = express();
 
@@ -17,7 +18,9 @@ const User = mongoose.model('User', new mongoose.Schema({
     username: String, 
     email: { type: String, unique: true }, 
     password: String, 
-    courses: { type: String, default: '{}' }
+    courses: { type: String, default: '{}' },
+    resetToken: String,
+    resetTokenExpiry: Date
 }));
 
 const Code = mongoose.model('Code', new mongoose.Schema({ 
@@ -103,6 +106,138 @@ app.get('/video/:id', async (req, res) => {
 });
 
 app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
+
+// ================= المسار الجديد: الملف الشخصي =================
+
+app.get('/profile', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/login');
+    const user = await User.findById(req.session.userId);
+    res.render('profile', { user, error: '', success: '' });
+});
+
+app.post('/profile/update', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/login');
+    const { username, email, currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.session.userId);
+    
+    let error = '';
+    let success = '';
+    
+    // التحقق من كلمة المرور الحالية
+    if (currentPassword && currentPassword !== user.password) {
+        error = 'كلمة المرور الحالية خاطئة';
+    } else {
+        // تحديث البيانات
+        if (username !== user.username) {
+            await User.findByIdAndUpdate(user._id, { username });
+            success = 'تم تحديث اسم المستخدم';
+        }
+        if (email !== user.email) {
+            const existingEmail = await User.findOne({ email });
+            if (existingEmail) {
+                error = 'هذا الإيميل مسجل مسبقاً';
+            } else {
+                await User.findByIdAndUpdate(user._id, { email });
+                success = success ? success + ' و ' : '';
+                success += 'تم تحديث الإيميل';
+            }
+        }
+        if (newPassword && currentPassword === user.password) {
+            await User.findByIdAndUpdate(user._id, { password: newPassword });
+            success = success ? success + ' و ' : '';
+            success += 'تم تحديث كلمة المرور';
+        }
+    }
+    
+    const updatedUser = await User.findById(req.session.userId);
+    res.render('profile', { user: updatedUser, error, success });
+});
+
+// ================= المسارات الجديدة: استعادة كلمة المرور =================
+
+app.get('/forgot-password', (req, res) => {
+    res.render('forgot-password', { error: '', success: '' });
+});
+
+app.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+        return res.render('forgot-password', { error: 'هذا الإيميل غير مسجل', success: '' });
+    }
+    
+    // توليد رمز استعادة (صالح لمدة ساعة)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // ساعة
+    
+    await User.findByIdAndUpdate(user._id, { 
+        resetToken, 
+        resetTokenExpiry 
+    });
+    
+    // في التطبيق الحقيقي: إرسال إيميل يحتوي على الرابط
+    // هنا سنعرض الرابط في الصفحة والـ console
+    const resetLink = `http://localhost:8080/reset-password/${resetToken}`;
+    
+    console.log('═══════════════════════════════════════');
+    console.log('🔐 رابط استعادة كلمة المرور:', resetLink);
+    console.log('═══════════════════════════════════════');
+    
+    res.render('forgot-password', { 
+        error: '', 
+        success: `تم إرسال رابط استعادة كلمة المرور إلى الإيميل (راجع الـ Console)`,
+        resetLink: resetLink // لعرضه في الصفحة للتجربة
+    });
+});
+
+app.get('/reset-password/:token', async (req, res) => {
+    const user = await User.findOne({ 
+        resetToken: req.params.token,
+        resetTokenExpiry: { $gt: Date.now() }
+    });
+    
+    if (!user) {
+        return res.render('reset-password', { 
+            error: 'رابط الاستعادة غير صالح أو منتهي الصلاحية', 
+            success: '',
+            token: null 
+        });
+    }
+    
+    res.render('reset-password', { 
+        error: '', 
+        success: '',
+        token: req.params.token 
+    });
+});
+
+app.post('/reset-password/:token', async (req, res) => {
+    const { password } = req.body;
+    const user = await User.findOne({ 
+        resetToken: req.params.token,
+        resetTokenExpiry: { $gt: Date.now() }
+    });
+    
+    if (!user) {
+        return res.render('reset-password', { 
+            error: 'رابط الاستعادة غير صالح أو منتهي الصلاحية', 
+            success: '',
+            token: req.params.token 
+        });
+    }
+    
+    await User.findByIdAndUpdate(user._id, { 
+        password: password,
+        resetToken: null,
+        resetTokenExpiry: null
+    });
+    
+    res.render('login', { 
+        error: '', 
+        success: 'تم تغيير كلمة المرور بنجاح، سجل دخولك الآن' 
+    });
+});
 
 // ================= لوحة التحكم (Admin Routes) =================
 
@@ -220,5 +355,3 @@ app.get('/admin/delete-all-codes', async (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-

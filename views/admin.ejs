@@ -50,10 +50,10 @@
             <div class="col-12">
               <select name="courseId" class="form-select bg-dark text-white" required>
                 <option value="">اختر الكورس...</option>
-                <% if (courses && courses.length > 0) { %>
-                  <% courses.forEach(c => { %>
+                <% if (typeof courses !== 'undefined' && courses && courses.length > 0) { %>
+                  <% courses.forEach(function(c) { %>
                     <option value="<%= c._id %>"><%= c.title %></option>
-                  <% }) %>
+                  <% }); %>
                 <% } %>
               </select>
             </div>
@@ -74,8 +74,8 @@
     <div class="card-custom" id="courses">
       <h5>الكورسات والمحاضرات</h5>
       <div class="row">
-        <% if (courses && courses.length > 0) { %>
-          <% courses.forEach((c) => { %>
+        <% if (typeof courses !== 'undefined' && courses && courses.length > 0) { %>
+          <% courses.forEach(function(c) { %>
             <div class="col-md-6 mb-3">
               <div class="code-box" style="display: block;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -87,7 +87,7 @@
                 </div>
                 <div class="mt-2">
                   <% if (c.lectures && c.lectures.length > 0) { %>
-                    <% c.lectures.forEach((lec, lecIndex) => { %>
+                    <% c.lectures.forEach(function(lec, lecIndex) { %>
                       <div class="lecture-item">
                         <span class="small"><%= lecIndex + 1 %>. <%= lec.title %></span>
                         <div>
@@ -95,14 +95,14 @@
                           <a href="/admin/delete-lecture/<%= c._id %>/<%= lecIndex %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف المحاضرة؟')">🗑️</a>
                         </div>
                       </div>
-                    <% }) %>
+                    <% }); %>
                   <% } else { %>
                     <p class="small text-secondary">لا توجد محاضرات</p>
                   <% } %>
                 </div>
               </div>
             </div>
-          <% }) %>
+          <% }); %>
         <% } else { %>
           <div class="col-12 text-center">لا توجد كورسات</div>
         <% } %>
@@ -123,11 +123,11 @@
             </tr>
           </thead>
           <tbody>
-            <% if (students && students.length > 0) { %>
-              <% students.forEach(s => { 
-                let coursesCount = 0;
+            <% if (typeof students !== 'undefined' && students && students.length > 0) { %>
+              <% students.forEach(function(s) { 
+                var coursesCount = 0;
                 try {
-                  const coursesObj = JSON.parse(s.courses || '{}');
+                  var coursesObj = JSON.parse(s.courses || '{}');
                   coursesCount = Object.keys(coursesObj).length;
                 } catch(e) { coursesCount = 0; }
               %>
@@ -141,7 +141,7 @@
                     <a href="/admin/delete-student/<%= s._id %>" class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')">حذف</a>
                   </td>
                 </tr>
-              <% }) %>
+              <% }); %>
             <% } else { %>
               <tr><td colspan="5" class="text-center">لا يوجد طلاب</td></tr>
             <% } %>
@@ -157,20 +157,20 @@
         <a href="/admin/delete-all-codes" class="btn btn-sm btn-danger" onclick="return confirm('حذف الكل؟')">حذف الكل</a>
       </div>
       <div class="row g-2" style="max-height: 200px; overflow-y: auto;">
-        <% if (codes && codes.length > 0) { %>
-          <% codes.forEach(code => { %>
+        <% if (typeof codes !== 'undefined' && codes && codes.length > 0) { %>
+          <% codes.forEach(function(code) { %>
             <div class="col-md-3 col-6">
               <div class="code-box">
                 <span class="code-text <%= code.used ? 'text-danger text-decoration-line-through' : 'text-success' %>">
                   <%= code.code %>
                 </span>
                 <div>
-                  <button class="btn btn-sm btn-outline-primary" onclick="copyCode('<%= code.code %>')">📋</button>
+                  <button class="btn btn-sm btn-outline-primary" data-code="<%= code.code %>">📋</button>
                   <a href="/admin/delete-code/<%= code._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف؟')">🗑️</a>
                 </div>
               </div>
             </div>
-          <% }) %>
+          <% }); %>
         <% } else { %>
           <div class="col-12 text-center">لا توجد أكواد</div>
         <% } %>
@@ -181,8 +181,8 @@
       <h5>الأدمنز</h5>
       <button class="btn btn-sm btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addAdminModal">إضافة أدمن</button>
       <div class="row">
-        <% if (admins && admins.length > 0) { %>
-          <% admins.forEach(a => { %>
+        <% if (typeof admins !== 'undefined' && admins && admins.length > 0) { %>
+          <% admins.forEach(function(a) { %>
             <div class="col-md-4 col-6">
               <div class="code-box">
                 <div>
@@ -195,7 +195,7 @@
                 <% } %>
               </div>
             </div>
-          <% }) %>
+          <% }); %>
         <% } else { %>
           <div class="col-12 text-center">لا يوجد أدمنز</div>
         <% } %>
@@ -203,7 +203,7 @@
     </div>
   </div>
 
-  <!-- مودال إضافة أدمن (بالاسم والإيميل فقط) -->
+  <!-- مودال إضافة أدمن -->
   <div class="modal fade" id="addAdminModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content bg-dark text-white">
@@ -269,16 +269,33 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    function copyCode(code) {
-      navigator.clipboard.writeText(code).then(function() {
-        alert('تم نسخ: ' + code);
-      }, function(err) {
-        console.error('خطأ في النسخ:', err);
+    // نسخ الكود
+    document.querySelectorAll('.btn-outline-primary[data-code]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var code = this.getAttribute('data-code');
+        navigator.clipboard.writeText(code).then(function() {
+          alert('تم نسخ: ' + code);
+        }, function(err) {
+          console.error('خطأ في النسخ:', err);
+        });
       });
-    }
+    });
 
+    // تعديل الكورس
     function showEditCourseForm(id, title, thumb) {
       document.getElementById('editCourseTitle').value = title;
       document.getElementById('editCourseThumb').value = thumb;
       document.getElementById('editCourseForm').action = '/admin/edit-course/' + id;
-      new bootstrap.Modal(document.getElementById('edit
+      new bootstrap.Modal(document.getElementById('editCourseModal')).show();
+    }
+
+    // تعديل المحاضرة
+    function showEditLecForm(courseId, lecIndex, title, vid) {
+      document.getElementById('editLecTitle').value = title;
+      document.getElementById('editLecVid').value = vid;
+      document.getElementById('editLecForm').action = '/admin/edit-lecture/' + courseId + '/' + lecIndex;
+      new bootstrap.Modal(document.getElementById('editLecModal')).show();
+    }
+  </script>
+</body>
+</html>

@@ -408,4 +408,62 @@ app.get('/admin/delete-code/:id', async (req, res) => {
 });
 
 app.get('/admin/delete-all-codes', async (req, res) => {
-    if (!req.session.isAdmin)
+    if (!req.session.isAdmin) return res.redirect('/login');
+    await Code.deleteMany({});
+    await logActivity(req, 'حذف كل الأكواد', 'الأكواد', 'حذف كل أكواد التفعيل');
+    res.redirect('/admin');
+});
+
+// إضافة أدمن جديد
+app.post('/admin/add-admin', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    const { username, email, password } = req.body;
+    
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.redirect('/admin#admins-section');
+        }
+        
+        await User.create({ 
+            username, 
+            email, 
+            password, 
+            isAdmin: true,
+            adminCreatedAt: new Date()
+        });
+        
+        await logActivity(req, 'إضافة أدمن', 'الأدمنز', `إضافة أدمن جديد: ${email}`);
+        res.redirect('/admin#admins-section');
+    } catch (err) {
+        res.send("خطأ في إضافة الأدمن");
+    }
+});
+
+// حذف أدمن
+app.get('/admin/delete-admin/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    if (req.params.id === 'admin-main') {
+        return res.redirect('/admin#admins-section');
+    }
+    
+    try {
+        const admin = await User.findById(req.params.id);
+        await User.findByIdAndDelete(req.params.id);
+        await logActivity(req, 'حذف أدمن', 'الأدمنز', `حذف أدمن: ${admin.email}`);
+        res.redirect('/admin#admins-section');
+    } catch (err) {
+        res.send("خطأ في حذف الأدمن");
+    }
+});
+
+// حذف سجل الأنشطة
+app.get('/admin/clear-activity-log', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    await ActivityLog.deleteMany({});
+    await logActivity(req, 'حذف السجل', 'النظام', 'حذف كل سجل الأنشطة');
+    res.redirect('/admin#activity-section');
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

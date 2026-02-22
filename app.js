@@ -156,7 +156,7 @@ app.post('/profile/update', async (req, res) => {
 // ================= المسارات الجديدة: استعادة كلمة المرور =================
 
 app.get('/forgot-password', (req, res) => {
-    res.render('forgot-password', { error: '', success: '' });
+    res.render('forgot-password', { error: '', success: '', resetLink: '' });
 });
 
 app.post('/forgot-password', async (req, res) => {
@@ -164,7 +164,7 @@ app.post('/forgot-password', async (req, res) => {
     const user = await User.findOne({ email });
     
     if (!user) {
-        return res.render('forgot-password', { error: 'هذا الإيميل غير مسجل', success: '' });
+        return res.render('forgot-password', { error: 'هذا الإيميل غير مسجل', success: '', resetLink: '' });
     }
     
     // توليد رمز استعادة (صالح لمدة ساعة)
@@ -187,7 +187,7 @@ app.post('/forgot-password', async (req, res) => {
     res.render('forgot-password', { 
         error: '', 
         success: `تم إرسال رابط استعادة كلمة المرور إلى الإيميل (راجع الـ Console)`,
-        resetLink: resetLink // لعرضه في الصفحة للتجربة
+        resetLink: resetLink
     });
 });
 
@@ -241,7 +241,6 @@ app.post('/reset-password/:token', async (req, res) => {
 
 // ================= لوحة التحكم (Admin Routes) =================
 
-// مسار تصفير حساب الطالب (إلغاء تفعيل كل الكورسات عنده)
 app.get('/admin/reset-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     try {
@@ -252,7 +251,6 @@ app.get('/admin/reset-student/:id', async (req, res) => {
     }
 });
 
-// مسار حذف حساب الطالب نهائياً
 app.get('/admin/delete-student/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     try {
@@ -263,8 +261,6 @@ app.get('/admin/delete-student/:id', async (req, res) => {
     }
 });
 
-
-// جلب بيانات محاضرة معينة للتعديل (API)
 app.get('/admin/lecture-data/:courseId/:lecIndex', async (req, res) => {
     if (!req.session.isAdmin) return res.status(403).json({ error: 'Unauthorized' });
     const course = await Course.findById(req.params.courseId);
@@ -272,7 +268,6 @@ app.get('/admin/lecture-data/:courseId/:lecIndex', async (req, res) => {
     res.json(course.lectures[req.params.lecIndex]);
 });
 
-// تنفيذ تعديل المحاضرة
 app.post('/admin/edit-lecture/:courseId/:lecIndex', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { title, vid } = req.body;
@@ -286,13 +281,12 @@ app.post('/admin/edit-lecture/:courseId/:lecIndex', async (req, res) => {
     res.redirect('/admin');
 });
 
-// مسار لحذف محاضرة معينة
 app.get('/admin/delete-lecture/:courseId/:lecIndex', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const { courseId, lecIndex } = req.params;
     const course = await Course.findById(courseId);
     if (course) {
-        course.lectures.splice(lecIndex, 1); // حذف المحاضرة من المصفوفة
+        course.lectures.splice(lecIndex, 1);
         await course.save();
     }
     res.redirect('/admin');
